@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fixed Income Prospect Finder</title>
+<style>
+  :root {
+    --bg: #f9f8f6;
+    --surface: #ffffff;
+    --surface2: #f2f1ee;
+    --border: rgba(0,0,0,0.09);
+    --border-md: rgba(0,0,0,0.14);
+    --text: #1a1a18;
+    --text2: #6b6b66;
+    --text3: #a0a09a;
+    --navy: #0f2240;
+    --navy-light: #e8edf4;
+    --green: #0f6e56;
+    --green-light: #e1f5ee;
+    --purple: #3c3489;
+    --purple-light: #eeedfe;
+    --amber: #633806;
+    --amber-light: #faeeda;
+    --red: #a32d2d;
+    --red-light: #fcebeb;
+    --teal: #085041;
+    --teal-light: #e1f5ee;
+    --radius: 8px;
+    --radius-lg: 12px;
+    font-size: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Georgia', 'Times New Roman', serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  
+  /* Header */
+  .header {
+    background: var(--navy);
+    color: white;
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 3px solid #c9a84c;
+  }
+  .header-left h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+  .header-left p { font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 2px; font-family: 'Helvetica Neue', sans-serif; }
+  .header-right { display: flex; gap: 12px; align-items: center; }
+  .stat-chip { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 5px 14px; font-size: 12px; font-family: 'Helvetica Neue', sans-serif; }
+  .stat-chip strong { color: #c9a84c; }
+
+  /* Main layout */
+  .main { display: flex; height: calc(100vh - 73px); }
+
+  /* Sidebar filters */
+  .sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 20px 16px;
+    overflow-y: auto;
+  }
+  .sidebar h3 { font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: var(--text3); font-family: 'Helvetica Neue', sans-serif; margin-bottom: 12px; }
+  .filter-group { margin-bottom: 20px; }
+  .filter-group label { display: block; font-size: 11px; color: var(--text2); margin-bottom: 5px; font-family: 'Helvetica Neue', sans-serif; font-weight: 500; }
+  .filter-group input, .filter-group select {
+    width: 100%; padding: 7px 10px; font-size: 12px;
+    border: 1px solid var(--border-md); border-radius: var(--radius);
+    background: var(--bg); color: var(--text); font-family: 'Helvetica Neue', sans-serif;
+    appearance: none;
+  }
+  .filter-group input:focus, .filter-group select:focus { outline: none; border-color: var(--navy); }
+  .btn-search {
+    width: 100%; padding: 9px; background: var(--navy); color: white;
+    border: none; border-radius: var(--radius); font-size: 13px; cursor: pointer;
+    font-family: 'Helvetica Neue', sans-serif; font-weight: 500; letter-spacing: .3px;
+    margin-top: 4px;
+  }
+  .btn-search:hover { background: #1a3860; }
+  .btn-clear {
+    width: 100%; padding: 7px; background: transparent; color: var(--text2);
+    border: 1px solid var(--border-md); border-radius: var(--radius); font-size: 12px;
+    cursor: pointer; font-family: 'Helvetica Neue', sans-serif; margin-top: 6px;
+  }
+  .btn-clear:hover { background: var(--surface2); }
+
+  .legend-section { margin-top: 8px; }
+  .legend-item { display: flex; align-items: center; gap: 7px; margin-bottom: 7px; font-size: 11px; font-family: 'Helvetica Neue', sans-serif; color: var(--text2); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .dot-v { background: var(--green); }
+  .dot-p { background: #ba7517; }
+  .dot-s { background: #993556; }
+
+  /* Table area */
+  .table-area { flex: 1; overflow: auto; padding: 20px 24px; }
+  .results-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .results-bar span { font-size: 12px; color: var(--text2); font-family: 'Helvetica Neue', sans-serif; }
+
+  table { width: 100%; border-collapse: collapse; font-family: 'Helvetica Neue', sans-serif; }
+  thead { position: sticky; top: 0; z-index: 10; }
+  thead th {
+    background: var(--surface); text-align: left; padding: 9px 12px;
+    font-size: 10px; text-transform: uppercase; letter-spacing: .08em;
+    color: var(--text3); border-bottom: 2px solid var(--border-md);
+    white-space: nowrap; font-weight: 600;
+  }
+  tbody tr { border-bottom: 1px solid var(--border); cursor: pointer; transition: background .1s; }
+  tbody tr:hover { background: #f5f4f1; }
+  tbody tr.row-hot { background: rgba(252,235,235,0.4); }
+  tbody tr.row-warn { background: rgba(250,238,218,0.4); }
+  tbody tr.row-hot:hover { background: rgba(252,235,235,0.7); }
+  tbody tr.row-warn:hover { background: rgba(250,238,218,0.7); }
+  tbody td { padding: 10px 12px; vertical-align: top; font-size: 13px; }
+
+  .firm-name { font-weight: 600; font-size: 13px; color: var(--text); font-family: 'Georgia', serif; }
+  .firm-flags { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 3px; }
+
+  .badge { display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 500; white-space: nowrap; font-family: 'Helvetica Neue', sans-serif; }
+  .badge-alm { background: var(--teal-light); color: var(--teal); }
+  .badge-ins { background: var(--navy-light); color: var(--navy); }
+  .badge-buy { background: var(--purple-light); color: var(--purple); }
+  .badge-gov { background: var(--amber-light); color: var(--amber); }
+  .badge-hot { background: var(--red-light); color: var(--red); }
+  .badge-warn { background: var(--amber-light); color: var(--amber); }
+  .badge-active { background: var(--green-light); color: var(--green); }
+
+  .prod-tag { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 5px; background: var(--surface2); color: var(--text2); border: 1px solid var(--border); margin: 1px; }
+
+  .contact-row { display: flex; align-items: baseline; gap: 6px; margin-bottom: 5px; }
+  .contact-row:last-child { margin-bottom: 0; }
+  .contact-name { font-size: 12px; font-weight: 600; color: var(--text); }
+  .contact-title { font-size: 11px; color: var(--text2); }
+  .role-pill { display: inline-block; font-size: 9px; padding: 1px 5px; border-radius: 4px; margin-left: 3px; font-weight: 600; letter-spacing: .03em; vertical-align: middle; }
+  .rp-trader { background: var(--teal-light); color: var(--teal); }
+  .rp-pm { background: var(--purple-light); color: var(--purple); }
+  .rp-senior { background: var(--surface2); color: var(--text2); }
+  .rp-search { background: var(--amber-light); color: var(--amber); }
+
+  /* Detail panel */
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.25); z-index: 100; }
+  .overlay.open { display: block; }
+  .panel {
+    position: fixed; top: 0; right: 0; width: 460px; height: 100vh;
+    background: var(--surface); border-left: 1px solid var(--border-md);
+    padding: 24px; overflow-y: auto; display: none; z-index: 101;
+    box-shadow: -4px 0 24px rgba(0,0,0,0.08);
+  }
+  .panel.open { display: block; }
+  .panel-close { float: right; background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text2); line-height: 1; padding: 0; font-family: sans-serif; }
+  .panel-firm { font-size: 18px; font-weight: 700; color: var(--navy); font-family: 'Georgia', serif; margin-bottom: 4px; padding-right: 30px; }
+  .panel-meta { font-size: 12px; color: var(--text2); font-family: 'Helvetica Neue', sans-serif; margin-bottom: 14px; }
+
+  .psec { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--border); }
+  .psec h4 { font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: var(--text3); font-family: 'Helvetica Neue', sans-serif; font-weight: 600; margin-bottom: 10px; }
+
+  .ccard {
+    border-radius: var(--radius); padding: 12px 14px; margin-bottom: 10px;
+    border: 1px solid var(--border); background: var(--bg);
+  }
+  .ccard-warn { border-color: #FAC775; background: rgba(250,238,218,0.15); }
+  .ccard-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3px; }
+  .ccard-name { font-size: 14px; font-weight: 600; color: var(--text); font-family: 'Helvetica Neue', sans-serif; }
+  .ccard-title { font-size: 11px; color: var(--text2); font-family: 'Helvetica Neue', sans-serif; margin-bottom: 7px; }
+  .ccard-note { font-size: 12px; line-height: 1.6; color: var(--text2); font-family: 'Helvetica Neue', sans-serif; }
+  .ccard-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+  .ctag { font-size: 10px; padding: 2px 7px; border-radius: 5px; background: var(--surface); color: var(--text2); border: 1px solid var(--border); font-family: 'Helvetica Neue', sans-serif; }
+  .ctag-v { background: var(--green-light); color: var(--green); border-color: #9FE1CB; }
+  .ctag-w { background: var(--amber-light); color: var(--amber); border-color: #FAC775; }
+  .li-link { font-size: 11px; color: #1a73e8; text-decoration: none; white-space: nowrap; font-family: 'Helvetica Neue', sans-serif; flex-shrink: 0; }
+  .li-link:hover { text-decoration: underline; }
+
+  .pitch-box {
+    background: var(--navy-light); border-left: 3px solid var(--navy);
+    border-radius: 0 var(--radius) var(--radius) 0; padding: 12px 14px;
+    font-size: 12px; line-height: 1.65; color: #1a2840; font-family: 'Helvetica Neue', sans-serif;
+  }
+  .pitch-box strong { font-weight: 700; }
+
+  .alert-hot { background: var(--red-light); border: 1px solid #F7C1C1; border-radius: var(--radius); padding: 10px 12px; font-size: 12px; line-height: 1.6; color: #7a1f1f; font-family: 'Helvetica Neue', sans-serif; margin-bottom: 10px; }
+  .alert-warn { background: var(--amber-light); border: 1px solid #FAC775; border-radius: var(--radius); padding: 10px 12px; font-size: 12px; line-height: 1.6; color: var(--amber); font-family: 'Helvetica Neue', sans-serif; margin-bottom: 10px; }
+  .alert-hot strong, .alert-warn strong { font-weight: 700; }
+  .src-link { font-size: 12px; color: #1a73e8; text-decoration: none; font-family: 'Helvetica Neue', sans-serif; }
+  .src-link:hover { text-decoration: underline; }
+
+  .empty { text-align: center; padding: 60px 20px; color: var(--text3); font-family: 'Helvetica Neue', sans-serif; font-size: 14px; }
+  .badge-status-inhouse { background: var(--navy-light); color: var(--navy); }
+  .badge-status-alm { background: var(--teal-light); color: var(--teal); }
+  .badge-status-competitor { background: var(--surface2); color: var(--text2); }
+  .badge-status-dnc { background: var(--red-light); color: var(--red); }
+  .row-dnc { background: rgba(252,235,235,0.35); }
+  .row-competitor { background: rgba(242,241,238,0.8); }
+  .row-dnc:hover { background: rgba(252,235,235,0.6); }
+  .row-competitor:hover { background: rgba(242,241,238,1); }
+  .btn-remove { margin-top: 8px; padding: 6px 10px; background: #fff; color: var(--red); border: 1px solid #efb6b6; border-radius: var(--radius); font-size: 12px; cursor: pointer; }
+  .btn-remove:hover { background: var(--red-light); }
+  .btn-restore { margin-left: 8px; padding: 6px 10px; background: #fff; color: var(--green); border: 1px solid #9FE1CB; border-radius: var(--radius); font-size: 12px; cursor: pointer; }
+  .btn-restore:hover { background: var(--green-light); }
+
+
+  @media (max-width: 800px) {
+    .sidebar { width: 180px; }
+    .panel { width: 100vw; }
+  }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-left">
+    <h1>Fixed Income Prospect Finder</h1>
+    <p>Agency MBS · CMO · CMBS · Taxable Munis · Tax-Exempt Munis — Trader &amp; PM contacts verified</p>
+  </div>
+  <div class="header-right">
+    <div class="stat-chip">Prospects: <strong id="h-total">0</strong></div>
+    <div class="stat-chip">Named contacts: <strong id="h-named">0</strong></div>
+    <div class="stat-chip">Removed hidden: <strong id="h-hot">0</strong></div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="sidebar">
+    <div class="filter-group">
+      <h3>Filters</h3>
+      <label>City / Firm</label>
+      <input type="text" id="f-q" placeholder="Dallas, PIMCO…">
+    </div>
+    <div class="filter-group">
+      <label>State</label>
+      <select id="f-state"><option value="">All states</option></select>
+    </div>
+    <div class="filter-group">
+      <label>Segment</label>
+      <select id="f-seg">
+        <option value="">All segments</option>
+        <option value="ALM Manager">ALM Manager</option>
+        <option value="Insurance">Insurance</option>
+        <option value="Buy-Side Manager">Buy-Side Manager</option>
+        <option value="Govt / Muni Pool">Govt / Muni Pool</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Status</label>
+      <select id="f-status">
+        <option value="">Actionable default</option>
+        <option value="In-House Buyer">In-House Buyer</option>
+        <option value="ALM Manager">ALM Manager</option>
+        <option value="Competitor">Competitor</option>
+        <option value="Do Not Call">Do Not Call</option>
+        <option value="all">Show all</option>
+        <option value="removed">Removed firms</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Product</label>
+      <select id="f-prod">
+        <option value="">All products</option>
+        <option value="Agency MBS">Agency MBS</option>
+        <option value="Agency CMO">Agency CMO</option>
+        <option value="Agency CMBS">Agency CMBS</option>
+        <option value="Taxable Munis">Taxable Munis</option>
+        <option value="Tax-Exempt Munis">Tax-Exempt Munis</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Contact confidence</label>
+      <select id="f-conf">
+        <option value="">All</option>
+        <option value="v">Verified only</option>
+        <option value="p">Verified + Partial</option>
+        <option value="s">Search needed only</option>
+      </select>
+    </div>
+    <button class="btn-search" onclick="applyFilters()">Search</button>
+    <button class="btn-clear" onclick="clearFilters()">Clear filters</button>
+    <button class="btn-clear" onclick="toggleRemovedView()">Show / restore removed firms</button>
+
+    <div class="legend-section" style="margin-top:24px">
+      <h3>Contact confidence</h3>
+      <div class="legend-item"><div class="dot dot-v"></div>LinkedIn / filing verified</div>
+      <div class="legend-item"><div class="dot dot-p"></div>Found, verify current role</div>
+      <div class="legend-item"><div class="dot dot-s"></div>Research needed</div>
+    </div>
+    <div class="legend-section" style="margin-top:16px">
+      <h3>Role</h3>
+      <div class="legend-item"><span class="role-pill rp-trader">Trader</span> Day-to-day execution</div>
+      <div class="legend-item"><span class="role-pill rp-pm">PM</span> Portfolio manager</div>
+      <div class="legend-item"><span class="role-pill rp-senior">Senior</span> CIO / senior leadership</div>
+    </div>
+  </div>
+
+  <div class="table-area">
+    <div class="results-bar">
+      <span id="rc">Loading…</span>
+      <span style="color:var(--text3);font-size:11px">Click any row for full detail, LinkedIn links &amp; pitch guidance</span>
+    </div>
+    <table>
+      <colgroup>
+        <col style="width:16%"><col style="width:8%"><col style="width:5%">
+        <col style="width:12%"><col style="width:10%"><col style="width:14%"><col style="width:35%">
+      </colgroup>
+      <thead><tr>
+        <th>Firm</th><th>City</th><th>St</th><th>Status</th><th>Segment</th>
+        <th>Products</th><th>Traders &amp; Portfolio Managers</th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div id="empty-msg" class="empty" style="display:none">No prospects match your filters.</div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closePanel()"></div>
+<div class="panel" id="panel">
+  <button class="panel-close" onclick="closePanel()">×</button>
+  <div id="panel-content"></div>
+</div>
+
+<script>
+try {
+
+var SEG_BADGE = {
+  'ALM Manager': 'badge-alm',
+  'Insurance': 'badge-ins',
+  'Buy-Side Manager': 'badge-buy',
+  'Govt / Muni Pool': 'badge-gov'
+};
+var ROLE_PILL = {trader:'rp-trader', pm:'rp-pm', senior:'rp-senior', search:'rp-search'};
+var ROLE_LABEL = {trader:'Trader', pm:'PM', senior:'Senior', search:'Search needed'};
+
+var DATA = [];
+
+function firmKey(p) { return (p.firm + '|' + p.city + '|' + p.state).toLowerCase(); }
+function getRemovedKeys() { try { return JSON.parse(localStorage.getItem('fi_removed_keys') || '[]'); } catch(e) { return []; } }
+function saveRemovedKeys(keys) { localStorage.setItem('fi_removed_keys', JSON.stringify(keys)); }
+function isRemoved(p) { var keys = getRemovedKeys(); return keys.indexOf(firmKey(p)) !== -1; }
+function removeFirm(idx) { var p = DATA[idx]; if (!confirm('Remove ' + p.firm + '? It will stay hidden until you restore it.')) return; var keys = getRemovedKeys(); var k = firmKey(p); if (keys.indexOf(k) === -1) { keys.push(k); saveRemovedKeys(keys); } applyFilters(); closePanel(); }
+function restoreFirm(idx) { var p = DATA[idx]; var k = firmKey(p); var keys = getRemovedKeys().filter(function(x){ return x !== k; }); saveRemovedKeys(keys); applyFilters(); showPanel(idx); }
+function toggleRemovedView() { var el = document.getElementById('f-status'); if (el.value === 'removed') { el.value = ''; } else { el.value = 'removed'; } applyFilters(); }
+function deriveStatus(p) {
+  if (p.firm.indexOf('Vining Sparks') !== -1 || p.firm.indexOf('Piper Sandler') !== -1) return 'Competitor';
+  if (p.firm.indexOf('Texas Permanent School Fund') !== -1 || p.firm.indexOf('Florida State Board of Administration') !== -1) return 'Do Not Call';
+  if (p.segment === 'ALM Manager') return 'ALM Manager';
+  return 'In-House Buyer';
+}
+function statusBadge(s) {
+  var cls = s === 'In-House Buyer' ? 'badge-status-inhouse' : s === 'ALM Manager' ? 'badge-status-alm' : s === 'Competitor' ? 'badge-status-competitor' : 'badge-status-dnc';
+  return '<span class="badge ' + cls + '">' + s + '</span>';
+}
+
+
+DATA.push({firm:"ALM First Financial Advisors",city:"Dallas",state:"TX",segment:"ALM Manager",aum:"$77B AUA",hot:false,warn:false,warnMsg:"",products:["Agency MBS","Agency CMO","Agency CMBS","Taxable Munis"],contacts:[{name:"Conrad Lofton",title:"Director, Investment Management Group",role:"trader",conf:"v",note:"LinkedIn explicitly states daily duties: sector monitoring, security selection, and trade execution for Agency CMBS, floaters, CMOs, HECMs, SARMs, KFs, and repo. Direct product match.",liUrl:"https://www.linkedin.com/in/conradlofton/"},{name:"Kirby Hart",title:"Associate, Investment Management Group",role:"trader",conf:"v",note:"Confirmed on LinkedIn. Member of the IMG trading desk. Previously traded Agency CMBS. SMU grad, Dallas-based.",liUrl:"https://www.linkedin.com/in/kirby-hart-3b8b54139/"},{name:"Alec Hollis, CFA",title:"Principal, ALM Strategy",role:"pm",conf:"v",note:"10+ years at ALM First. Fixed income strategy and portfolio management. Active LinkedIn writer.",liUrl:"https://www.linkedin.com/in/alec-hollis-cfa-0698b72a/"},{name:"Jason Haley, CFA",title:"Chief Investment Officer",role:"senior",conf:"v",note:"CIO since 2024. Senior relationship contact.",liUrl:"https://www.linkedin.com/in/jason-haley-7704631a/"}],pitch:"Conrad Lofton and Kirby Hart are your two direct trading contacts. Conrad's LinkedIn lists Agency CMBS, CMOs, floaters, and HECMs as his daily work. Lead with specific product ideas and execution quality.",sourceUrl:"https://www.almfirst.com/"});
+
+DATA.push({firm:"McQueen Financial Advisors",city:"Clawson",state:"MI",segment:"ALM Manager",aum:"$8B AUA",hot:false,warn:false,warnMsg:"",products:["Agency MBS","Agency CMO","Taxable Munis"],contacts:[{name:"Fixed Income PM / Trader",title:"Investment Management Team",role:"search",conf:"s",note:"McQueen does not publish individual names. Call main line (248) 548-8400, ask for the portfolio manager or trader handling Agency MBS and CMO execution. Small firm — one call routes you directly.",liUrl:"https://www.linkedin.com/search/results/people/?keywords=McQueen+Financial+Advisors+fixed+income+Clawson"}],pitch:"Small boutique. One call to the main line gets you to the right person. Their website says they recommend specific securities at specific prices — position yourself as providing unique liquidity.",sourceUrl:"https://m-f-a.com/"});
+
+DATA.push({firm:"Performance Trust Capital Partners",city:"Chicago",state:"IL",segment:"ALM Manager",aum:"$15B AUA",hot:false,warn:false,warnMsg:"",products:["Agency MBS","Agency CMO","Agency CMBS","Taxable Munis"],contacts:[{name:"Weston Friedman",title:"CMBS Trader, Fixed Income Trading Desk",role:"trader",conf:"v",note:"LinkedIn title confirmed: CMBS trader at Performance Trust Capital Partners. Posts actively about the buy-side fixed income trading desk. Your direct Agency CMBS contact here.",liUrl:"https://www.linkedin.com/in/weston-friedman-a7929a5/"},{name:"Brian Leibfried, CFA",title:"Portfolio Manager, Fixed Income",role:"pm",conf:"v",note:"LinkedIn confirms at Performance Trust. Active on fixed income strategy topics including Agency MBS allocation.",liUrl:"https://www.linkedin.com/in/brian-leibfried-cfa-0a1a3343/"}],pitch:"Weston Friedman is your CMBS trader contact. Reference PTIAX's ~30% Agency MBS allocation to show you understand their portfolio strategy.",sourceUrl:"https://www.performancetrust.com/"});
+
+DATA.push({firm:"Olsen Palmer LLC",city:"Washington",state:"DC",segment:"ALM Manager",aum:"$3B AUA",hot:false,warn:false,warnMsg:"",products:["Agency MBS","Agency CMO","Taxable Munis"],contacts:[{name:"Fixed Income Advisors",title:"Investment Advisory Team",role:"search",conf:"s",note:"Small boutique. No individual names published. Call their main line directly and ask for the fixed income portfolio manager or trader.",liUrl:"https://www.linkedin.com/company/olsen-palmer/people/"}],pitch:"East Coast ALM boutique. Short Agency CMO structures are their core product. One direct call routes you to the decision-maker.",sourceUrl:"https://www.olsenpalmer.com/"});
+
+DATA.push({firm:"Vining Sparks / Stifel",city:"Memphis",state:"TN",segment:"ALM Manager",aum:"$30B AUA",hot:false,warn:true,warnMsg:"Vining Sparks was acquired by Stifel Financial (NYSE: SF) in November 2021. The Memphis team now operates as Stifel's depository/bank advisory group. Mark Medford (former VS CEO) became Stifel Vice Chairman.",products:["Agency MBS","Agency CMO","Agency CMBS","Taxable Munis"],contacts:[{name:"Stifel Memphis - Fixed Income / Bank Advisory",title:"MDs and Directors, Agency MBS, CMO, Munis",role:"trader",conf:"p",note:"Legacy Vining Sparks staff remain active under Stifel titles. LinkedIn search 'Stifel Memphis fixed income bank advisory Agency MBS' returns current staff.",liUrl:"https://www.linkedin.com/search/results/people/?keywords=Stifel+Memphis+fixed+income+bank+advisory"}],pitch:"Legacy VS staff in Memphis are still the best contacts for community bank Agency MBS and CMO. Post-acquisition, some community bank clients may be underserved.",sourceUrl:"https://www.stifel.com/"});
+
+DATA.push({firm:"Duncan-Hurst Capital Management",city:"San Diego",state:"CA",segment:"ALM Manager",aum:"$5B AUA",hot:false,warn:false,warnMsg:"",products:["Agency MBS","Agency CMO","Taxable Munis"],contacts:[{name:"Fixed Income Portfolio Managers",title:"PM Team - Agency MBS, CMO",role:"search",conf:"s",note:"No individual names published. West Coast boutique. LinkedIn search Duncan-Hurst Capital Management portfolio manager San Diego or direct call to their office is fastest.",liUrl:"https://www.linkedin.com/search/results/people/?keywords=Duncan-Hurst+Capital+Management+San+Diego"}],pitch:"West Coast ALM firm for community banks in CA/WA/OR. Agency CMO and short MBS are their core products.",sourceUrl:"https://adviserinfo.sec.gov/firm/summary/107730"});
+
+DATA.push({firm:"Piper Sandler (Bank Advisory)",city:"Minneapolis",state:"MN",segment:"ALM Manager",aum:"$20B AUA",hot:false,warn:false,warnMsg:"",products:["Agency MBS","Agency CMO","Agency CMBS","Taxable Munis"],contacts:[{name:"Bank Advisory Group - Fixed Income MDs",title:"Managing Directors, Fixed Income by Region",role:"pm",conf:"p",note:"Large regional team. LinkedIn search Piper Sandler bank advisory fixed income managing director returns multiple names by region. Find the MD covering your territory.",liUrl:"https://www.linkedin.com/search/results/people/?keywords=Piper+Sandler+bank+advisory+fixed+income+managing+director"}],pitch:"Position as best-execution partner for Agency MBS and CMO structures Piper Sandler recommends to their bank clients.",sourceUrl:"https://www.pipersandler.com/financial-institutions"});
+
+DATA.push({firm:"USAA / Victory Capital",city:"San Antonio",state:"TX",segment:"Insurance",aum:"$40B invested",hot:false,warn:true,warnMsg:"USAA Investments was acquired by Victory Capital in July 2019, rebranded as Victory Income Investors in 2023. Mutual fund / fixed income management is now Victory Capital in San Antonio. The USAA insurance general account is managed separately in-house (CIO: David Yim).",products:["Agency MBS","Agency CMO","Taxable Munis","Tax-Exempt Munis"],contacts:[{name:"Kurt Daum, J.D.",title:"Senior Portfolio Manager - Victory Income Investors",role:"pm",conf:"v",note:"Confirmed via SEC fund prospectus and Victory Capital website. Co-manages USAA Government Securities Fund benchmarked to Bloomberg Government/MBS Index. Prior: Highland Capital Management Director of FI. BBA UT Austin, J.D. UT Law.",liUrl:"https://www.linkedin.com/search/results/people/?keywords=Kurt+Daum+Victory+Capital+San+Antonio"},{name:"R. Neal Graves, CFA, CPA",title:"Senior Portfolio Manager - Victory Income Investors",role:"pm",conf:"v",note:"Confirmed via SEC fund prospectus. Co-manages USAA Government Securities Fund which explicitly holds Agency MBS (FNMA, FHLMC, GNMA pools) and CMOs.",liUrl:"https://www.linkedin.com/search/results/people/?keywords=Neal+Graves+Victory+Capital+USAA+San+Antonio"},{name:"Brian W. Smith, CFA, CPA",title:"Senior Portfolio Manager - Victory Income Investors",role:"pm",conf:"v",note:"Confirmed via SEC prospectus. Co-manages USAA Income Fund (USAIX) - one of the Agency MBS-heavy funds.",liUrl:"https://www.linkedin.com/search/results/people/?keywords=Brian+Smith+Victory+Capital+USAA+fixed+income"},{name:"John Spear, CFA",title:"Co-CIO - Victory Income Investors",role:"senior",conf:"v",note:"Co-CIO alongside Jim Jackson. SEC fund prospectus confirmed. Daum, Graves, and Smith are better day-to-day PM contacts.",liUrl:"https://www.linkedin.com/search/results/people/?keywords=John+Spear+Victory+Capital+USAA"}],pitch:"Kurt Daum and Neal Graves co-manage the Government Securities Fund benchmarked to Bloomberg Government/MBS Index. Agency MBS is core to their mandate. These are your day-to-day contacts.",sourceUrl:"https://www.vcm.com/investment-franchises/victory-income-investors"});
+
+DATA.push({firm:"State Farm Insurance",city:"Bloomington",state:"IL",segment:"Insurance",aum:"$100B invested",hot:false,warn:false,warnMsg:"",products:["Agency MBS","Taxable Munis","Tax-Exempt Munis"],contacts:[{name:"Investment Management Division - Fixed Income",title:"Portfolio Manager / Senior Investment Analyst",role:"search",conf:"s",note:"State Farm manages general account in-house but does not publish investment team names externally. LinkedIn search State Farm investment fixed income portfolio manager Bloomington Illinois returns several professionals.",liUrl:"https://www.linkedin.com/search/results/people/?keywords=State+Farm+investment+fixed+income+portfolio+manager+Bloomington+Illinois"}],pitch:"Large buyer of Agency MBS and tax-exempt munis. Hard to penetrate cold. Conference introductions at Bond Buyer or SIFMA work best. Reference SFBDX holdings to show portfolio knowledge.",sourceUrl:"https://www.naic.org"});
+
+DATA.push({firm:"Nationwide Insurance (NWAM)",city:"Columbus",state:"OH",segment:"Insurance",aum:"$130B invested",hot:false,warn:false,warnMsg:"",products:["Agency MBS","Agency CMBS","Taxable Munis","Tax-Exempt Munis"],contacts:[{name:"Enterprise Portfolio Management - Fixed Income",title:"Senior Portfolio Manager / Senior Investment Professional",role:"pm",conf:"p",note:"Nationwide's internal investment operation manages $130B+ in general account assets. LinkedIn search Nationwide Asset Management fixed income portfolio manager Columbus Ohio returns several current professionals.",liUrl:"https://www.linkedin.com/search/results/people/?keywords=Nationwide+Asset+Management+fixed+income+portfolio+manager+Columbus+Ohio"}],pitch:"Large buyer of Agency MBS and CMBS for general account. Reference NWQAX/NWQIX holdings to demonstrate portfolio knowledge. Target Enterprise Portfolio Management, not the public fund side.",sourceUrl:"https://careers.nationwide.com/"});
+
+DATA.push({firm:"Auto-Owners Insurance",city:"Lansing",state:"MI",segment:"Insurance",aum:"$18B invested",hot:false,warn:false,warnMsg:"",products:["Tax-Exempt Munis","Taxable Munis","Agency MBS"],contacts:[{name:"Investment Department - Fixed Income",title:"Investment Officer / Bond Portfolio Manager",role:"search",conf:"s",note:"Mutual company. No investment team names published. Call Lansing HQ directly, ask for Investment Department and specifically the fixed income or bond portfolio manager.",liUrl:"https://www.linkedin.com/search/results/people/?keywords=Auto-Owners+Insurance+investment+Lansing+Michigan"}],pitch:"Underserved by major dealers. Tax-exempt munis are the primary fixed income allocation. Conservative buyer - lead with execution consistency and relationship.",sourceUrl:"https://www.auto-owners.com/"});
+
+DATA.push({firm:"Western & Southern / Fort Washington",city:"Cincinnati",state:"OH",segment:"Insurance",aum:"$75B invested",hot:false,warn:false,warnMsg:"",products:["Agency MBS","Agency CMBS","Taxable Munis"],contacts:[{name:"Fort Washington Investment Advisors - Fixed Income",title:"Portfolio Manager, Fixed Income",role:"pm",conf:"p",note:"Fort Washington is the investment management subsidiary (SEC ADV filed). FWSFX prospectus lists named PMs - check SEC EDGAR for current names. LinkedIn search Fort Washington Investment Advisors fixed income Cincinnati.",liUrl:"https://www.linkedin.com/search/results/people/?keywords=Fort+Washington+Investment+Advisors+fixed+income+Cincinnati"}],pitch:"Fort Washington is the trading entity, not Western & Southern directly. Reference FWSFX's confirmed Agency MBS and taxable muni strategy. Pull the FWSFX prospectus on SEC EDGAR for current named PM contacts.",sourceUrl:"https://adviserinfo.sec.gov/firm/summary/107028"});
+
+DATA.push({firm:"Sentry Insurance",city:"Stevens Point",state:"WI",segment:"Insurance",aum:"$10B invested",hot:false,warn:false,warnMsg:"",products:["Tax-Exempt Munis","Taxable Munis","Agency MBS"],contacts:[{name:"Investment Management Division",title:"Investment Officer / Portfolio Manager",role:"search",conf:"s",note:"Mutual insurer. No investment team names published publicly. Call main HQ (715) 346-6000 and ask for Investment Management Division.",liUrl:"https://www.linkedin.com/search/results/people/?keywords=Sentry+Insurance+investment+Stevens+Point+Wisconsin"}],pitch:"Conservative P&C muni buyer. Tax-exempt munis are the primary fixed income allocation. Lead with muni execution quality.",sourceUrl:"https://oci.wi.gov/Documents/Companies/ACQGenFINSentry2023.pdf"});
+
+DATA.push({firm:"PIMCO",city:"Newport Beach",state:"CA",segment:"Buy-Side Manager",aum:"$2T+ AUM",hot:false,warn:false,warnMsg:"",products:["Agency MBS","Agency CMO","Agency CMBS","Taxable Munis"],contacts:[{name:"Agency MBS / Securitized Products PM Team",title:"Portfolio Managers - Agency MBS, Securitized",role:"pm",conf:"p",note:"PIMCO publishes named PMs in PTTRX and PFUIX prospectuses (SEC EDGAR). Check current N-PORT/N-SAR for listed managers - they rotate. LinkedIn search PIMCO Agency MBS portfolio manager Newport Beach.",liUrl:"https://www.linkedin.com/search/results/people/?keywords=PIMCO+Agency+MBS+securitized+portfolio+manager+Newport+Beach"},{name:"Muni Fixed Income PM Team",title:"Portfolio Managers - Municipal Bonds",role:"pm",conf:"p",note:"Check MUNI ETF or PFMIX prospectus for named municipal PM contacts. Separate desk from the Agency MBS team.",liUrl:"https://www.linkedin.com/search/results/people/?keywords=PIMCO+municipal+bond+portfolio+manager+Newport+Beach"}],pitch:"Check PTTRX/PFUIX prospectuses for current named PMs. Lead with Agency CMBS and specified pools - they value speed and price discovery over research.",sourceUrl:"https://www.pimco.com/"});
+
+DATA.push({firm:"Western Asset Management",city:"Pasadena",state:"CA",segment:"Buy-Side Manager",aum:"$400B+ AUM",hot:false,warn:false,warnMsg:"",products:["Agency MBS","Agency CMBS","Taxable Munis"],contacts:[{name:"Agency MBS / Structured PM Team",title:"Portfolio Managers - Agency MBS, CMBS",role:"pm",conf:"p",note:"Named PMs listed in WATFX and WACPX prospectuses (SEC EDGAR). LinkedIn search Western Asset Management portfolio manager Pasadena Agency MBS securitized returns relevant names.",liUrl:"https://www.linkedin.com/search/results/people/?keywords=Western+Asset+Management+portfolio+manager+Pasadena+Agency+MBS"}],pitch:"Very active Agency MBS buyer. Core/Core+ strategies rotate frequently. Lead with Agency CMBS and specified pools. Pull WATFX/WACPX prospectus for named PMs.",sourceUrl:"https://www.westernasset.com/"});
+
+DATA.push({firm:"Baird Asset Management",city:"Milwaukee",state:"WI",segment:"Buy-Side Manager",aum:"$60B+ AUM",hot:false,warn:false,warnMsg:"",products:["Tax-Exempt Munis","Taxable Munis","Agency MBS"],contacts:[{name:"Baird Advisors - Fixed Income PM Team",title:"Portfolio Managers - Core, Short-Term, Muni",role:"pm",conf:"p",note:"Named PMs listed in BAGSX, BMBSX, BMBIX prospectuses (SEC EDGAR, CIK 0000010578). LinkedIn search Baird Advisors fixed income Milwaukee portfolio manager returns several named PMs.",liUrl:"https://www.linkedin.com/search/results/people/?keywords=Baird+Advisors+fixed+income+Milwaukee+portfolio+manager"}],pitch:"Top-ranked muni manager, very active secondary buyer. Lead with tax-exempt munis, then Agency MBS for BAGSX. Pull the prospectus (CIK 0000010578) for current named PM contacts.",sourceUrl:"https://www.rwbaird.com/investment-management/"});
+
+DATA.push({firm:"Nuveen Investments (TIAA)",city:"Chicago",state:"IL",segment:"Buy-Side Manager",aum:"$1.1T+ AUM",hot:false,warn:false,warnMsg:"",products:["Tax-Exempt Munis","Taxable Munis","Agency MBS","Agency CMBS"],contacts:[{name:"Nuveen Muni Fixed Income PM Team",title:"Portfolio Managers - National Tax-Exempt Munis",role:"pm",conf:"p",note:"Named PMs listed in NUVHX, NUVBX, NUV prospectuses (SEC EDGAR). LinkedIn search Nuveen municipal bonds portfolio manager Chicago returns several relevant names.",liUrl:"https://www.linkedin.com/search/results/people/?keywords=Nuveen+municipal+bonds+portfolio+manager+Chicago"},{name:"TIAA Investments - Agency MBS PM Team",title:"Portfolio Managers - MBS / Securitized",role:"pm",conf:"p",note:"Agency MBS managed through TIAA general account investment team, separate from the Nuveen muni brand. LinkedIn search TIAA fixed income MBS portfolio manager.",liUrl:"https://www.linkedin.com/search/results/people/?keywords=TIAA+fixed+income+MBS+portfolio+manager"}],pitch:"Two separate desks: Nuveen for munis (check prospectus for PM names), TIAA for Agency MBS. Lead with munis for the Nuveen relationship.",sourceUrl:"https://www.nuveen.com/"});
+
+DATA.push({firm:"Lord Abbett",city:"Jersey City",state:"NJ",segment:"Buy-Side Manager",aum:"$250B+ AUM",hot:false,warn:false,warnMsg:"",products:["Tax-Exempt Munis","Taxable Munis","Agency MBS"],contacts:[{name:"Lord Abbett Muni PM Team",title:"Portfolio Managers - National Tax-Free, Short-Term",role:"pm",conf:"p",note:"Named PMs listed in LANSX and LTRAX prospectuses (SEC EDGAR, CIK 0000060726). Very active secondary muni buyer. LinkedIn search Lord Abbett municipal bond portfolio manager Jersey City.",liUrl:"https://www.linkedin.com/search/results/people/?keywords=Lord+Abbett+municipal+bond+portfolio+manager+Jersey+City"}],pitch:"One of the strongest muni franchises in the country. Pull LANSX or LTRAX prospectus (CIK 0000060726 on SEC EDGAR) for current named PM contacts before outreach.",sourceUrl:"https://www.lordabbett.com/"});
+
+DATA.push({firm:"Eaton Vance / Morgan Stanley IM",city:"Boston",state:"MA",segment:"Buy-Side Manager",aum:"$500B+ AUM",hot:false,warn:true,warnMsg:"Eaton Vance was acquired by Morgan Stanley Investment Management in March 2021. Same PM team in Boston, now under MSIM corporate governance. Outreach should reference the Eaton Vance heritage brand within MSIM.",products:["Tax-Exempt Munis","Taxable Munis","Agency MBS"],contacts:[{name:"Eaton Vance Muni PM Team (MSIM)",title:"Portfolio Managers - Tax-Exempt Munis",role:"pm",conf:"p",note:"Named PMs listed in EVHMX and EIM prospectuses (SEC EDGAR). The Boston muni team is largely unchanged since the MSIM acquisition. LinkedIn search Eaton Vance municipal bonds portfolio manager Boston.",liUrl:"https://www.linkedin.com/search/results/people/?keywords=Eaton+Vance+municipal+bonds+portfolio+manager+Boston"}],pitch:"Strong muni franchise within MSIM. Reference the EIM CEF portfolio to show holdings knowledge. Pull EVHMX prospectus for current named PM contacts before outreach.",sourceUrl:"https://www.morganstanley.com/im/"});
+
+DATA.push({firm:"Federated Hermes",city:"Pittsburgh",state:"PA",segment:"Buy-Side Manager",aum:"$800B+ AUM",hot:false,warn:false,warnMsg:"",products:["Agency MBS","Taxable Munis","Tax-Exempt Munis"],contacts:[{name:"Federated Hermes Fixed Income PM Team",title:"Portfolio Managers - Intermediate Bond, Muni",role:"pm",conf:"p",note:"Named PMs listed in FIISX and FIMUX prospectuses (SEC EDGAR, CIK 0000020286). Very active Agency MBS buyers especially for money market and short-duration. LinkedIn search Federated Hermes fixed income Pittsburgh.",liUrl:"https://www.linkedin.com/search/results/people/?keywords=Federated+Hermes+fixed+income+Pittsburgh+portfolio+manager"}],pitch:"Very active Agency MBS buyer, especially for money market and short-duration. Lead with Agency MBS and short-term structured Agency. Pull FIISX prospectus (CIK 0000020286) for named PMs.",sourceUrl:"https://www.federatedhermes.com/"});
+
+DATA.push({firm:"Texas Permanent School Fund",city:"Austin",state:"TX",segment:"Govt / Muni Pool",aum:"$60B ($5.2B core bonds)",hot:true,warn:false,warnMsg:"",products:["Agency MBS","Agency CMBS","Taxable Munis"],contacts:[{name:"Brett Hemphill, CFA, CAIA",title:"Fixed Income - Public and Private Debt",role:"pm",conf:"v",note:"LinkedIn title explicitly confirmed: Fixed Income, Public and Private Debt at Texas Permanent School Fund. CFA and CAIA. Texas State University grad. This is your direct fixed income PM contact managing the core bond allocation transitioning to external management.",liUrl:"https://www.linkedin.com/in/bretthemphill/"},{name:"Jared Stout",title:"SVP & Deputy CIO - Risk & Portfolio Management",role:"senior",conf:"v",note:"Confirmed at texaspsf.org. Oversees risk and portfolio management. Relevant for external manager evaluation criteria.",liUrl:"https://texaspsf.org/executive-leadership/"},{name:"Robert Borden, CFA, CAIA",title:"CEO / Chief Investment Officer",role:"senior",conf:"v",note:"CIO leading the external manager transition. Entry point for formal RFP/manager search process. Brett Hemphill is the right day-to-day fixed income contact.",liUrl:"https://texaspsf.org/executive-leadership/"}],pitch:"ACTIVE SEARCH: Brett Hemphill is your primary contact for the core bond allocation (~$5.2B) transitioning to external management. Lead with Agency MBS and taxable muni capabilities.",sourceUrl:"https://texaspsf.org/executive-leadership/"});
+
+DATA.push({firm:"Florida State Board of Administration",city:"Tallahassee",state:"FL",segment:"Govt / Muni Pool",aum:"$43.1B fixed income",hot:true,warn:false,warnMsg:"",products:["Agency MBS","Agency CMBS","Taxable Munis"],contacts:[{name:"Cherie Jeffries",title:"Director of Fixed Income Trading",role:"trader",conf:"v",note:"LinkedIn and The Org both confirm: Director of Fixed Income Trading at Florida SBA since 2012. Previously SVP at Brown Brothers Harriman. 30+ years in fixed income. She runs the actual trading desk for $43.1B in fixed income. This is your primary day-to-day contact.",liUrl:"https://www.linkedin.com/in/cherie-jeffries-7baa8512/"},{name:"Lamar Taylor",title:"Chief Investment Officer",role:"senior",conf:"v",note:"CIO of Florida SBA. Senior relationship contact. Appropriate for formal manager search introductions, not day-to-day trading.",liUrl:"https://www.linkedin.com/search/results/people/?keywords=Lamar+Taylor+Florida+SBA+CIO"}],pitch:"Cherie Jeffries runs the $43.1B fixed income trading desk. She is your day-to-day contact for Agency MBS and CMBS. The SBA is also actively hiring a Senior PM for External Fixed Income Management.",sourceUrl:"https://www.sbafla.com/"});
+
+DATA.push({firm:"NYC Pension Funds (Comptroller)",city:"New York",state:"NY",segment:"Govt / Muni Pool",aum:"$250B+",hot:false,warn:false,warnMsg:"",products:["Agency MBS","Agency CMBS","Taxable Munis"],contacts:[{name:"Bureau of Asset Management - Fixed Income",title:"Portfolio Manager / Director of Fixed Income",role:"search",conf:"s",note:"Staff names appear in board meeting minutes and investment advisory reports at comptroller.nyc.gov. LinkedIn search NYC Comptroller Bureau Asset Management fixed income portfolio manager returns relevant staff.",liUrl:"https://www.linkedin.com/search/results/people/?keywords=NYC+Comptroller+Bureau+Asset+Management+fixed+income"}],pitch:"Large Agency MBS buyer. Process-driven government entity. RFP/competitive bid required. Check board meeting minutes at comptroller.nyc.gov for staff names.",sourceUrl:"https://comptroller.nyc.gov/"});
+
+DATA.push({firm:"CalSTRS",city:"West Sacramento",state:"CA",segment:"Govt / Muni Pool",aum:"$340B+",hot:false,warn:true,warnMsg:"CalSTRS CIO Chris Ailman retired in July 2024 after 24 years. Verify current CIO and fixed income team leadership before any senior outreach.",products:["Agency MBS","Agency CMBS","Taxable Munis"],contacts:[{name:"Fixed Income Investment Officers",title:"Portfolio Manager / Senior Investment Officer",role:"search",conf:"s",note:"CalSTRS publishes staff in CAFR appendices and board meeting minutes at calstrs.com. LinkedIn search CalSTRS fixed income portfolio manager West Sacramento. Verify new CIO appointment before senior-level outreach.",liUrl:"https://www.linkedin.com/search/results/people/?keywords=CalSTRS+fixed+income+portfolio+manager+West+Sacramento"}],pitch:"Large active Agency MBS buyer. New CIO is a relationship reset opportunity. Read recent board presentations at calstrs.com before outreach.",sourceUrl:"https://www.calstrs.com/"});
+
+DATA.push({firm:"Illinois State Board of Investment",city:"Chicago",state:"IL",segment:"Govt / Muni Pool",aum:"$20B+",hot:false,warn:false,warnMsg:"",products:["Agency MBS","Taxable Munis"],contacts:[{name:"ISBI Fixed Income Investment Team",title:"Portfolio Manager / Investment Officer - Fixed Income",role:"search",conf:"s",note:"Annual report and board meeting minutes at isbi.com list some staff names. LinkedIn search Illinois State Board of Investment fixed income Chicago. Board meetings are public.",liUrl:"https://www.linkedin.com/search/results/people/?keywords=Illinois+State+Board+Investment+fixed+income+Chicago"}],pitch:"Active fixed income buyer with Bloomberg Aggregate benchmark confirming Agency MBS exposure. Chicago-based - geographic proximity is an advantage.",sourceUrl:"https://www.isbi.com/"});
+
+DATA.push({firm:"Ohio PERS (OPERS)",city:"Columbus",state:"OH",segment:"Govt / Muni Pool",aum:"$100B+",hot:false,warn:false,warnMsg:"",products:["Agency MBS","Agency CMBS","Taxable Munis"],contacts:[{name:"OPERS Fixed Income Investment Team",title:"Portfolio Manager - Fixed Income",role:"search",conf:"s",note:"OPERS publishes investment staff in CAFR appendices and quarterly board presentations at opers.org (all public). LinkedIn search OPERS Ohio fixed income portfolio manager Columbus.",liUrl:"https://www.linkedin.com/search/results/people/?keywords=OPERS+Ohio+fixed+income+portfolio+manager+Columbus"}],pitch:"Large active buyer of Agency MBS, CMBS, and taxable munis. CAFR and board presentations at opers.org detail the fixed income strategy - read them before outreach.",sourceUrl:"https://www.opers.org/"});
+
+// Helper functions
+function dotCls(c) { return c==='v' ? 'dot-v' : c==='p' ? 'dot-p' : 'dot-s'; }
+function rolePill(r) { return '<span class="role-pill ' + (ROLE_PILL[r]||'') + '">' + (ROLE_LABEL[r]||r) + '</span>'; }
+function segBadge(s) { return '<span class="badge ' + (SEG_BADGE[s]||'') + '">' + s + '</span>'; }
+
+function contactsInline(contacts) {
+  var html = '';
+  for (var i = 0; i < contacts.length; i++) {
+    var c = contacts[i];
+    html += '<div class="contact-row">'
+      + '<div class="dot ' + dotCls(c.conf) + '" style="margin-top:3px;flex-shrink:0;width:7px;height:7px;border-radius:50%;display:inline-block"></div>'
+      + '<div style="display:inline-block;margin-left:6px;vertical-align:top">'
+      + '<span class="contact-name">' + c.name + '</span>' + rolePill(c.role)
+      + '<div class="contact-title">' + c.title + '</div>'
+      + '</div></div>';
+  }
+  return html;
+}
+
+function updateHeader(d) {
+  document.getElementById('h-total').textContent = d.length;
+  var named = 0;
+  for (var i = 0; i < d.length; i++) {
+    for (var j = 0; j < d[i].contacts.length; j++) {
+      var c = d[i].contacts[j];
+      if (c.conf === 'v' && c.name.indexOf('Team') === -1 && c.name.indexOf('Group') === -1 && c.name.indexOf('Division') === -1) named++;
+    }
+  }
+  document.getElementById('h-named').textContent = named;
+  document.getElementById('h-hot').textContent = getRemovedKeys().length;
+}
+
+var _filtered = DATA.slice();
+
+function render() {
+  var tbody = document.getElementById('tbody');
+  var empty = document.getElementById('empty-msg');
+  document.getElementById('rc').textContent = 'Showing ' + _filtered.length + ' of ' + DATA.length + ' prospects';
+  updateHeader(_filtered);
+  if (!_filtered.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  var rows = '';
+  for (var i = 0; i < _filtered.length; i++) {
+    var p = _filtered[i];
+    var idx = DATA.indexOf(p);
+    var prodTags = '';
+    for (var j = 0; j < p.products.length; j++) { prodTags += '<span class="prod-tag">' + p.products[j] + '</span>'; }
+    var rowCls = p.status === 'Do Not Call' ? 'row-dnc' : p.status === 'Competitor' ? 'row-competitor' : (p.warn ? 'row-warn' : '');
+    rows += '<tr onclick="showPanel(' + idx + ')" class="' + rowCls + '">'
+      + '<td><div class="firm-name">' + p.firm + '</div>'
+      + '<div class="firm-flags">'
+      + (p.hot ? '<span class="badge badge-hot">Active search</span>' : '')
+      + (p.warn ? '<span class="badge badge-warn">Change</span>' : '')
+      + '<span style="font-size:10px;color:var(--text3)">' + p.aum + '</span>'
+      + '</div></td>'
+      + '<td style="vertical-align:top;padding-top:11px">' + p.city + '</td>'
+      + '<td style="vertical-align:top;padding-top:11px">' + p.state + '</td>'
+      + '<td style="vertical-align:top;padding-top:10px">' + statusBadge(p.status) + '</td>'
+      + '<td style="vertical-align:top;padding-top:10px">' + segBadge(p.segment) + '</td>'
+      + '<td style="vertical-align:top;padding-top:10px">' + prodTags + '</td>'
+      + '<td>' + contactsInline(p.contacts) + '</td>'
+      + '</tr>';
+  }
+  tbody.innerHTML = rows;
+}
+
+function applyFilters() {
+  var q = (document.getElementById('f-q').value || '').toLowerCase();
+  var state = document.getElementById('f-state').value;
+  var seg = document.getElementById('f-seg').value;
+  var status = document.getElementById('f-status').value;
+  var prod = document.getElementById('f-prod').value;
+  var conf = document.getElementById('f-conf').value;
+  _filtered = [];
+  for (var i = 0; i < DATA.length; i++) {
+    var p = DATA[i];
+    p.status = deriveStatus(p);
+    var removed = isRemoved(p);
+    if (status === 'removed') { if (!removed) continue; }
+    else {
+      if (removed) continue;
+      if (!status && (p.status === 'Competitor' || p.status === 'Do Not Call')) continue;
+      if (status && status !== 'all' && p.status !== status) continue;
+    }
+    if (q && p.city.toLowerCase().indexOf(q) === -1 && p.firm.toLowerCase().indexOf(q) === -1) continue;
+    if (state && p.state !== state) continue;
+    if (seg && p.segment !== seg) continue;
+    if (prod) {
+      var hasProd = false;
+      for (var j = 0; j < p.products.length; j++) { if (p.products[j] === prod) hasProd = true; }
+      if (!hasProd) continue;
+    }
+    if (conf === 'v') {
+      var hasV = false;
+      for (var j = 0; j < p.contacts.length; j++) { if (p.contacts[j].conf === 'v') hasV = true; }
+      if (!hasV) continue;
+    }
+    if (conf === 'p') {
+      var hasP = false;
+      for (var j = 0; j < p.contacts.length; j++) { if (p.contacts[j].conf === 'v' || p.contacts[j].conf === 'p') hasP = true; }
+      if (!hasP) continue;
+    }
+    _filtered.push(p);
+  }
+  render();
+}
+
+function clearFilters() {
+  document.getElementById('f-q').value = '';
+  document.getElementById('f-state').value = '';
+  document.getElementById('f-seg').value = '';
+  document.getElementById('f-status').value = '';
+  document.getElementById('f-prod').value = '';
+  document.getElementById('f-conf').value = '';
+  _filtered = DATA.slice();
+  render();
+}
+
+function showPanel(idx) {
+  var p = DATA[idx];
+  p.status = deriveStatus(p);
+  var cardsHtml = '';
+  for (var i = 0; i < p.contacts.length; i++) {
+    var c = p.contacts[i];
+    cardsHtml += '<div class="ccard ' + (c.conf === 's' ? 'ccard-warn' : '') + '">'
+      + '<div class="ccard-top"><div>'
+      + '<div class="ccard-name"><span class="dot ' + dotCls(c.conf) + '" style="display:inline-block;margin-right:5px;vertical-align:middle;width:8px;height:8px;border-radius:50%"></span>'
+      + c.name + rolePill(c.role) + '</div>'
+      + '<div class="ccard-title">' + c.title + '</div></div>'
+      + (c.liUrl ? '<a href="' + c.liUrl + '" target="_blank" class="li-link" onclick="event.stopPropagation()">LinkedIn &rarr;</a>' : '')
+      + '</div>'
+      + '<div class="ccard-note">' + c.note + '</div>'
+      + '<div class="ccard-tags">'
+      + (c.conf === 'v' ? '<span class="ctag ctag-v">&#10003; Verified</span>' : c.conf === 'p' ? '<span class="ctag ctag-w">Verify current role</span>' : '<span class="ctag ctag-w">Name not public &mdash; search needed</span>')
+      + '</div></div>';
+  }
+  var prodTags = '';
+  for (var j = 0; j < p.products.length; j++) { prodTags += '<span class="prod-tag">' + p.products[j] + '</span> '; }
+
+  document.getElementById('panel-content').innerHTML =
+    '<div class="panel-firm">' + p.firm + '</div>'
+    + '<div class="panel-meta">' + p.city + ', ' + p.state + ' &nbsp;&middot;&nbsp; ' + p.aum + ' &nbsp;&middot;&nbsp; ' + segBadge(p.segment) + '</div>'
+    + (p.status === 'Do Not Call' ? '<div class="alert-hot"><strong>Do Not Call.</strong> This firm is flagged because it does not fit your in-house CUSIP sales model.</div>' : '')
+    + (p.warn && p.warnMsg ? '<div class="alert-warn"><strong>Important change:</strong> ' + p.warnMsg + '</div>' : '')
+    + '<div class="psec"><h4>Products</h4>' + prodTags + '</div>'
+    + '<div class="psec"><h4>Traders &amp; Portfolio Managers</h4>' + cardsHtml + '</div>'
+    + '<div class="psec"><h4>Pitch angle</h4><div class="pitch-box">' + p.pitch + '</div></div>'
+    + '<div class="psec"><h4>Source</h4><a href="' + p.sourceUrl + '" target="_blank" class="src-link">' + p.firm + ' &rarr;</a></div>'
+    + '<div class="psec"><h4>Firm controls</h4>'
+    + (isRemoved(p) ? '<button class="btn-restore" onclick="restoreFirm(' + idx + ')">Restore firm</button>' : '<button class="btn-remove" onclick="removeFirm(' + idx + ')">Remove firm</button>')
+    + '</div>'; 
+
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('panel').classList.add('open');
+}
+
+function closePanel() {
+  document.getElementById('overlay').classList.remove('open');
+  document.getElementById('panel').classList.remove('open');
+}
+
+// Initialize
+window.onload = function() {
+  var states = [];
+  var seen = {};
+  for (var i = 0; i < DATA.length; i++) {
+    if (!seen[DATA[i].state]) { states.push(DATA[i].state); seen[DATA[i].state] = true; }
+  }
+  states.sort();
+  var stSel = document.getElementById('f-state');
+  for (var i = 0; i < states.length; i++) {
+    var o = document.createElement('option');
+    o.value = states[i];
+    o.textContent = states[i];
+    stSel.appendChild(o);
+  }
+  document.getElementById('f-q').addEventListener('keydown', function(e) { if (e.key === 'Enter') applyFilters(); });
+  document.getElementById('f-state').addEventListener('change', applyFilters);
+  document.getElementById('f-seg').addEventListener('change', applyFilters);
+  document.getElementById('f-status').addEventListener('change', applyFilters);
+  document.getElementById('f-prod').addEventListener('change', applyFilters);
+  document.getElementById('f-conf').addEventListener('change', applyFilters);
+  applyFilters();
+};
+
+} catch(e) {
+  document.body.innerHTML = '<div style="padding:40px;font-family:sans-serif;color:red"><strong>JavaScript Error:</strong><br>' + e.message + '<br><br>' + e.stack + '</div>';
+}
+</script>
+</body>
+</html>
