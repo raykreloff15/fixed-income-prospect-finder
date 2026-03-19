@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<!-- saved from url=(0074)file:///C:/Users/ray.kreloff/Downloads/florida_structured_pipeline_v4.html -->
+<!-- saved from url=(0074)file:///C:/Users/ray.kreloff/Downloads/florida_structured_pipeline_v6.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Florida Structured Pipeline v4</title>
+<title>Florida Structured Prospect Pipeline v6</title>
 <style>
   :root {
     --bg:#f7f8fb; --card:#ffffff; --text:#1f2937; --muted:#6b7280; --line:#d1d5db;
@@ -11,20 +11,18 @@
     --red:#991b1b; --redbg:#fee2e2; --graybg:#e5e7eb;
   }
   body { font-family: Arial, Helvetica, sans-serif; margin:0; background:var(--bg); color:var(--text); }
-  .wrap { max-width: 1400px; margin: 0 auto; padding: 20px; }
+  .wrap { max-width: 1560px; margin: 0 auto; padding: 20px; }
   h1 { margin: 0 0 8px; font-size: 28px; }
   .sub { color: var(--muted); margin-bottom: 16px; }
-  .toolbar { display:grid; grid-template-columns: 1.4fr repeat(5, 1fr); gap:10px; margin-bottom:16px; }
-  input, select, button {
-    border:1px solid var(--line); border-radius:10px; padding:10px 12px; font-size:14px; background:#fff;
-  }
+  .toolbar { display:grid; grid-template-columns: 1.7fr repeat(5, 1fr); gap:10px; margin-bottom:16px; }
+  input, select, button { border:1px solid var(--line); border-radius:10px; padding:10px 12px; font-size:14px; background:#fff; }
   button { cursor:pointer; }
-  .stats { display:grid; grid-template-columns: repeat(5, 1fr); gap:10px; margin-bottom:16px; }
+  .stats { display:grid; grid-template-columns: repeat(6, 1fr); gap:10px; margin-bottom:16px; }
   .stat { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px; }
   .stat .label { color:var(--muted); font-size:12px; }
   .stat .value { font-size:22px; font-weight:700; margin-top:4px; }
   .tablebox { background:var(--card); border:1px solid var(--line); border-radius:14px; overflow:auto; }
-  table { width:100%; border-collapse:collapse; min-width:1280px; }
+  table { width:100%; border-collapse:collapse; min-width:1720px; }
   th, td { border-bottom:1px solid #e5e7eb; padding:10px 12px; font-size:13px; vertical-align:top; text-align:left; }
   th { position:sticky; top:0; background:#f9fafb; z-index:1; }
   .pill { display:inline-block; padding:4px 8px; border-radius:999px; font-size:11px; font-weight:700; white-space:nowrap; }
@@ -43,9 +41,8 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>Florida Structured Prospect Pipeline v4</h1>
-  <div class="sub">Government rows now include <strong>investment policy</strong> links and a <strong>capital requirement</strong> column. Policies that do not state a numeric broker-dealer equity threshold are marked <strong>Not stated</strong> per your rule.</div>
-
+  <h1>Florida Structured Prospect Pipeline v6</h1>
+  <div class="sub">Rebuilt Florida-first file with stricter structured screens, official-source government policy links, surfaced government portfolio sizes, and stronger best-current contacts. Government policies with no surfaced numeric broker-dealer capital threshold are marked as <strong>Not stated</strong> and treated as eligible per your rule.</div>
   <div class="toolbar">
     <input id="q" placeholder="Search firm, city, notes, products..." oninput="render()">
     <select id="segment" onchange="render()">
@@ -75,32 +72,21 @@
     </select>
     <button onclick="toggleRemoved()"><span id="removedLabel">Show Removed: Off</span></button>
   </div>
-
   <div class="stats">
-    <div class="stat"><div class="label">Visible Prospects</div><div class="value" id="countVisible">14</div></div>
-    <div class="stat"><div class="label">Government w/ Policy Link</div><div class="value" id="countGov">8</div></div>
+    <div class="stat"><div class="label">Visible Prospects</div><div class="value" id="countVisible">16</div></div>
+    <div class="stat"><div class="label">Government Rows</div><div class="value" id="countGov">10</div></div>
+    <div class="stat"><div class="label">Government w/ AUM</div><div class="value" id="countGovAum">8</div></div>
     <div class="stat"><div class="label">Structured High</div><div class="value" id="countHigh">3</div></div>
-    <div class="stat"><div class="label">Eligible</div><div class="value" id="countEligible">12</div></div>
+    <div class="stat"><div class="label">Eligible</div><div class="value" id="countEligible">13</div></div>
     <div class="stat"><div class="label">Removed</div><div class="value" id="countRemoved">0</div></div>
   </div>
-
   <div class="tablebox">
     <table>
       <thead>
         <tr>
-          <th>Firm</th>
-          <th>City</th>
-          <th>Segment</th>
-          <th>Status</th>
-          <th>Eligibility</th>
-          <th>Structured</th>
-          <th>Products</th>
-          <th>Best Current Contact</th>
-          <th>Investment Policy</th>
-          <th>Capital Requirement</th>
-          <th>Source</th>
-          <th>Notes</th>
-          <th>Action</th>
+          <th>Firm</th><th>City</th><th>Segment</th><th>Status</th><th>Eligibility</th><th>Structured</th>
+          <th>Government AUM / Portfolio Size</th><th>Products</th><th>Best Current Contact</th><th>Investment Policy</th>
+          <th>Capital Requirement</th><th>Source</th><th>Notes</th><th>Action</th>
         </tr>
       </thead>
       <tbody id="tbody"><tr>
@@ -110,15 +96,14 @@
       <td>In-House Buyer</td>
       <td><span class="pill p-eligible">Eligible</span></td>
       <td><span class="pill p-high">High</span></td>
+      <td></td>
       <td>Agency MBS; Core FI</td>
-      <td>Needs deeper PM/trader pass</td>
+      <td>Christopher J. Caputo - Adviser (IAPD); Thomas D. Fant - Adviser (IAPD); Louie E. Denney Jr. - Adviser (IAPD)<div><a href="https://adviserinfo.sec.gov/firm/summary/104451" target="_blank" rel="noopener">Contact / team link</a></div></td>
       <td></td>
       <td></td>
       <td><a href="https://integrityfi.com/" target="_blank" rel="noopener">Source</a></td>
-      <td>Institutional fixed income manager; site lists government agency MBS strategy.</td>
-      <td class="actions">
-        <button onclick="removeFirm(&#39;integrity fixed income management|orlando|fl&#39;)">Remove</button>
-      </td>
+      <td>Institutional fixed income manager in Orlando; official site lists U.S. Agency MBS as a strategy. Named contacts are current IAPD-registered adviser personnel, not yet PM-title verified.</td>
+      <td class="actions"><button onclick="removeFirm(&#39;integrity fixed income management|orlando|fl&#39;)">Remove</button></td>
     </tr><tr>
       <td><strong>Universal Insurance Holdings</strong><div class="small">FL</div></td>
       <td>Fort Lauderdale</td>
@@ -126,15 +111,14 @@
       <td>In-House Buyer</td>
       <td><span class="pill p-eligible">Eligible</span></td>
       <td><span class="pill p-high">High</span></td>
+      <td></td>
       <td>Agency MBS; Munis</td>
-      <td>Rob Luther - CIO</td>
+      <td>Rob Luther - Chief Investment Officer<div><a href="https://www.universalinsuranceholdings.com/management-team/" target="_blank" rel="noopener">Contact / team link</a></div></td>
       <td></td>
       <td></td>
-      <td><a href="https://www.sec.gov/Archives/edgar/data/891166/000089116625000025/uve-20241231.htm" target="_blank" rel="noopener">Source</a></td>
-      <td>10-K discloses agency MBS and muni exposure.</td>
-      <td class="actions">
-        <button onclick="removeFirm(&#39;universal insurance holdings|fort lauderdale|fl&#39;)">Remove</button>
-      </td>
+      <td><a href="https://www.sec.gov/Archives/edgar/data/891166/000119312524118076/d43928dars.pdf" target="_blank" rel="noopener">Source</a></td>
+      <td>Company disclosures support agency MBS and municipal exposure; current best official contact is Rob Luther as CIO.</td>
+      <td class="actions"><button onclick="removeFirm(&#39;universal insurance holdings|fort lauderdale|fl&#39;)">Remove</button></td>
     </tr><tr>
       <td><strong>Heritage Insurance Holdings</strong><div class="small">FL</div></td>
       <td>Tampa</td>
@@ -142,15 +126,14 @@
       <td>In-House Buyer</td>
       <td><span class="pill p-eligible">Eligible</span></td>
       <td><span class="pill p-medium">Medium</span></td>
+      <td></td>
       <td>Munis; Agencies; MBS</td>
-      <td>Needs deeper treasury/investment pass</td>
+      <td>Contact gap - treasury / investments team not surfaced cleanly from official materials<div><a href="https://investors.heritagepci.com/" target="_blank" rel="noopener">Contact / team link</a></div></td>
       <td></td>
       <td></td>
-      <td><a href="https://filecache.investorroom.com/mr5ir_heritage/318/HRTG%20Q424%20Earnings%20Presentation%20March%20v.F.pdf" target="_blank" rel="noopener">Source</a></td>
-      <td>Short-duration fixed-income portfolio; strategic investment activity disclosed.</td>
-      <td class="actions">
-        <button onclick="removeFirm(&#39;heritage insurance holdings|tampa|fl&#39;)">Remove</button>
-      </td>
+      <td><a href="https://filecache.investorroom.com/mr5ir_heritage/277/HRTG%20Investor%20Presentation%20-%201Q24.pdf" target="_blank" rel="noopener">Source</a></td>
+      <td>Investor materials showed sizable municipal and government / agency exposure; still needs a cleaner day-to-day investment contact.</td>
+      <td class="actions"><button onclick="removeFirm(&#39;heritage insurance holdings|tampa|fl&#39;)">Remove</button></td>
     </tr><tr>
       <td><strong>Citizens Property Insurance Corporation</strong><div class="small">FL</div></td>
       <td>Tallahassee</td>
@@ -158,15 +141,14 @@
       <td>In-House Buyer</td>
       <td><span class="pill p-eligible">Eligible</span></td>
       <td><span class="pill p-medium">Medium</span></td>
+      <td></td>
       <td>Bonds; Agencies; Munis</td>
-      <td>Needs deeper treasury/investment pass</td>
+      <td>Long Yang - Assistant Director, Treasury &amp; Investments; Jonathan Norfleet - Investments, Principal, Controller Administration<div><a href="https://www.citizensfla.com/" target="_blank" rel="noopener">Contact / team link</a></div></td>
       <td></td>
       <td></td>
       <td><a href="https://www.citizensfla.com/documents/20702/31968487/2024%2BAnnual%2BStatement.pdf/98f321e0-ecff-b44c-d5f3-3dbc487ed720?t=1741632246907" target="_blank" rel="noopener">Source</a></td>
-      <td>Large bond book per annual statement.</td>
-      <td class="actions">
-        <button onclick="removeFirm(&#39;citizens property insurance corporation|tallahassee|fl&#39;)">Remove</button>
-      </td>
+      <td>Large bond book per annual statement; contact names come from official Citizens committee materials and are better day-to-day targets than senior executives.</td>
+      <td class="actions"><button onclick="removeFirm(&#39;citizens property insurance corporation|tallahassee|fl&#39;)">Remove</button></td>
     </tr><tr>
       <td><strong>FCCI Insurance Group</strong><div class="small">FL</div></td>
       <td>Sarasota</td>
@@ -174,15 +156,14 @@
       <td>In-House Buyer</td>
       <td><span class="pill p-eligible">Eligible</span></td>
       <td><span class="pill p-high">High</span></td>
+      <td></td>
       <td>Mortgage / Asset-Backed; CMBS-related exposure</td>
-      <td>Needs deeper investment contact pass</td>
+      <td>Chris Shoucair - EVP, CFO &amp; Treasurer; Michelle Jalbert - SVP, Controller &amp; Assistant Treasurer<div><a href="https://www.fcci-group.com/about/leadership/" target="_blank" rel="noopener">Contact / team link</a></div></td>
       <td></td>
       <td></td>
       <td><a href="https://static.fcci-group.com/files/documents/2024_Annual_Report_Financials.pdf" target="_blank" rel="noopener">Source</a></td>
-      <td>2024 financials discuss mortgage- and asset-backed securities, including CMBS cash-flow assumptions.</td>
-      <td class="actions">
-        <button onclick="removeFirm(&#39;fcci insurance group|sarasota|fl&#39;)">Remove</button>
-      </td>
+      <td>2024 financials discuss mortgage- and asset-backed securities, including CMBS cash-flow assumptions; finance leadership is publicly listed.</td>
+      <td class="actions"><button onclick="removeFirm(&#39;fcci insurance group|sarasota|fl&#39;)">Remove</button></td>
     </tr><tr>
       <td><strong>Tower Hill Insurance Exchange</strong><div class="small">FL</div></td>
       <td>Gainesville</td>
@@ -190,15 +171,14 @@
       <td><span class="pill p-dnc">Do Not Call</span></td>
       <td><span class="pill p-ineligible">Ineligible</span></td>
       <td><span class="pill p-low">Low</span></td>
+      <td></td>
       <td>Short high-quality FI</td>
-      <td>N/A</td>
+      <td>N/A<div><a href="https://www.thig.com/companies/tower-hill-insurance-exchange/" target="_blank" rel="noopener">Contact / team link</a></div></td>
       <td></td>
       <td></td>
-      <td><a href="https://www.thig.com/companies/tower-hill-insurance-exchange/2023-annual-report/" target="_blank" rel="noopener">Source</a></td>
-      <td>Annual report says portfolio is managed by Conning Asset Management.</td>
-      <td class="actions">
-        <button onclick="removeFirm(&#39;tower hill insurance exchange|gainesville|fl&#39;)">Remove</button>
-      </td>
+      <td><a href="https://www.thig.com/assets/uploads/2023-Exchange-Annual-Report.pdf" target="_blank" rel="noopener">Source</a></td>
+      <td>Annual report says the investment portfolio is managed by Conning Asset Management, which screens it out under your in-house rule.</td>
+      <td class="actions"><button onclick="removeFirm(&#39;tower hill insurance exchange|gainesville|fl&#39;)">Remove</button></td>
     </tr><tr>
       <td><strong>Orange County Comptroller</strong><div class="small">FL</div></td>
       <td>Orlando</td>
@@ -206,15 +186,14 @@
       <td>In-House Buyer</td>
       <td><span class="pill p-eligible">Eligible</span></td>
       <td><span class="pill p-medium">Medium</span></td>
-      <td>Agencies; Treasuries; Public funds</td>
-      <td>Phil Diamond - Comptroller</td>
+      <td>~$3.53B book value (9/30/2024 portfolio total)</td>
+      <td>Treasuries; Florida PRIME; Federal Instrumentalities; Money Market</td>
+      <td>Phil Diamond - Comptroller; Treasury Department<div><a href="https://www.occompt.com/274/Treasury" target="_blank" rel="noopener">Contact / team link</a></div></td>
       <td><a href="https://www.occompt.com/225/Annual-Investment-Reports" target="_blank" rel="noopener">View policy</a></td>
       <td>Not stated in surfaced policy/report materials</td>
-      <td><a href="https://www.occompt.com/290/Investment-Committee" target="_blank" rel="noopener">Source</a></td>
-      <td>Policy/report link provided; active investment committee and annual investment reporting.</td>
-      <td class="actions">
-        <button onclick="removeFirm(&#39;orange county comptroller|orlando|fl&#39;)">Remove</button>
-      </td>
+      <td><a href="https://www.occompt.com/274/Treasury" target="_blank" rel="noopener">Source</a></td>
+      <td>Official treasury page says the office administers the County investment program; annual investment report totals about $3.53B at book value.</td>
+      <td class="actions"><button onclick="removeFirm(&#39;orange county comptroller|orlando|fl&#39;)">Remove</button></td>
     </tr><tr>
       <td><strong>Palm Beach County Clerk &amp; Comptroller</strong><div class="small">FL</div></td>
       <td>West Palm Beach</td>
@@ -222,31 +201,29 @@
       <td>In-House Buyer</td>
       <td><span class="pill p-eligible">Eligible</span></td>
       <td><span class="pill p-medium">Medium</span></td>
-      <td>County portfolio; agencies; municipals / public funds</td>
-      <td>Joseph Abruzzo - Clerk &amp; Comptroller</td>
+      <td>~$4.5B total portfolio (official 2024 IPC minutes); $1.0B Israel Bonds announced Jan. 2026</td>
+      <td>County portfolio; public funds; Israel Bonds; short-duration instruments</td>
+      <td>Mike Caruso - Clerk &amp; Comptroller; Felicia Landerman - Treasurer; John Burford - Investment Analyst<div><a href="https://www.mypalmbeachclerk.com/departments/finance/county-financial-information/investments" target="_blank" rel="noopener">Contact / team link</a></div></td>
       <td><a href="https://discover.pbc.gov/ofmb/budget/Reports/investment_policy.pdf" target="_blank" rel="noopener">View policy</a></td>
-      <td>Not stated in surfaced policy</td>
-      <td><a href="https://www.mypalmbeachclerk.com/Home/Components/News/News/784/" target="_blank" rel="noopener">Source</a></td>
-      <td>In-house team manages the county investment portfolio.</td>
-      <td class="actions">
-        <button onclick="removeFirm(&#39;palm beach county clerk comptroller|west palm beach|fl&#39;)">Remove</button>
-      </td>
+      <td>$15MM minimum capital for broker-dealers in surfaced policy</td>
+      <td><a href="https://www.mypalmbeachclerk.com/departments/finance/county-financial-information/investments" target="_blank" rel="noopener">Source</a></td>
+      <td>Official site says certified investment professionals manage the portfolio. Surfaced policy requires only $15MM minimum capital, which fits your firm.</td>
+      <td class="actions"><button onclick="removeFirm(&#39;palm beach county clerk comptroller|west palm beach|fl&#39;)">Remove</button></td>
     </tr><tr>
       <td><strong>St. Lucie County Clerk &amp; Comptroller</strong><div class="small">FL</div></td>
       <td>Fort Pierce</td>
       <td>Government</td>
-      <td>In-House Buyer</td>
-      <td><span class="pill p-eligible">Eligible</span></td>
-      <td><span class="pill p-medium">Medium</span></td>
-      <td>County portfolio; agencies; public funds</td>
-      <td>Michelle R. Miller - Clerk &amp; Comptroller</td>
+      <td><span class="pill p-dnc">Do Not Call</span></td>
+      <td><span class="pill p-ineligible">Ineligible</span></td>
+      <td><span class="pill p-low">Low</span></td>
+      <td>$528.2M cash and investments at county-wide 9/30/2024 level</td>
+      <td>County portfolio; public funds</td>
+      <td>Michelle R. Miller - Clerk &amp; Comptroller; Shai Francis - CFO (RFP contact)<div><a href="https://stlucieclerk.gov/departments-top-menu/finance" target="_blank" rel="noopener">Contact / team link</a></div></td>
       <td><a href="https://stlucieclerk.gov/deptforms/finance/Investment-Policy.pdf" target="_blank" rel="noopener">View policy</a></td>
       <td>Not stated in surfaced policy</td>
-      <td><a href="https://stlucieclerk.gov/index.php/services/county-financial-reports" target="_blank" rel="noopener">Source</a></td>
-      <td>Clerk states it manages the county investment portfolio and publishes quarterly reports.</td>
-      <td class="actions">
-        <button onclick="removeFirm(&#39;st lucie county clerk comptroller|fort pierce|fl&#39;)">Remove</button>
-      </td>
+      <td><a href="https://stlucieclerk.gov/departments-top-menu/finance" target="_blank" rel="noopener">Source</a></td>
+      <td>Clerk site says it manages the portfolio, but later investment-advisor RFP / outsourced-management indicators screen it out for direct in-house coverage.</td>
+      <td class="actions"><button onclick="removeFirm(&#39;st lucie county clerk comptroller|fort pierce|fl&#39;)">Remove</button></td>
     </tr><tr>
       <td><strong>City of Orlando Treasury</strong><div class="small">FL</div></td>
       <td>Orlando</td>
@@ -254,15 +231,14 @@
       <td>In-House Buyer</td>
       <td><span class="pill p-eligible">Eligible</span></td>
       <td><span class="pill p-medium">Medium</span></td>
-      <td>City funds; agencies; public funds</td>
-      <td>Katrina Laudeman - Treasurer</td>
+      <td>~$1.47B operating portfolio (9/30/2024); $3.77B total cash and investments incl. pension/custodial</td>
+      <td>City operating portfolio; agencies; public funds</td>
+      <td>Katrina Laudeman - Treasurer<div><a href="https://www.orlando.gov/Our-Government/Departments-Offices/OBFS/Treasury-Division" target="_blank" rel="noopener">Contact / team link</a></div></td>
       <td><a href="https://www.orlando.gov/Our-Government/Departments-Offices/OBFS/Treasury-Division" target="_blank" rel="noopener">View policy</a></td>
       <td>Not stated in surfaced Treasury / policy materials</td>
-      <td><a href="https://www.orlando.gov/Our-Government/Departments-Offices/OBFS/Treasury-Division" target="_blank" rel="noopener">Source</a></td>
-      <td>Treasury page names the Treasurer and points to the City's investment policy statement.</td>
-      <td class="actions">
-        <button onclick="removeFirm(&#39;city of orlando treasury|orlando|fl&#39;)">Remove</button>
-      </td>
+      <td><a href="https://www.orlando.gov/files/sharedassets/public/v/2/documents/obfs/annual-report/city-of-orlando-2024-acfr.pdf" target="_blank" rel="noopener">Source</a></td>
+      <td>Treasury Division page names the Treasurer; ACFR discloses operating portfolio and total cash/investments.</td>
+      <td class="actions"><button onclick="removeFirm(&#39;city of orlando treasury|orlando|fl&#39;)">Remove</button></td>
     </tr><tr>
       <td><strong>Miami-Dade County Finance / Treasury</strong><div class="small">FL</div></td>
       <td>Miami</td>
@@ -270,15 +246,14 @@
       <td>In-House Buyer</td>
       <td><span class="pill p-eligible">Eligible</span></td>
       <td><span class="pill p-medium">Medium</span></td>
-      <td>Agency callables; agency discount; public funds</td>
-      <td>Needs deeper treasury contact pass</td>
+      <td>~$9.6B invested portfolio at 6/30/2025 excluding $416M cash deposits</td>
+      <td>Agency callables; Agency discount; Agency bullets; CP; Treasuries</td>
+      <td>Chris Hill - Cash Management Division Director; Barbara Gomez - Finance Director, Finance Operations<div><a href="https://www.miamidade.gov/global/finance/contact-us.page?componentID=1553655066001&amp;submit=true" target="_blank" rel="noopener">Contact / team link</a></div></td>
       <td><a href="https://www.miamidadeclerk.gov/resources-clerk/library/finance/policy.pdf" target="_blank" rel="noopener">View policy</a></td>
       <td>Not stated in surfaced policy</td>
-      <td><a href="https://www.miamidadeclerk.gov/resources-clerk/library/finance/2025-june-summary2.pdf" target="_blank" rel="noopener">Source</a></td>
-      <td>Monthly summary shows large portfolio with agency callables and agency discount positions.</td>
-      <td class="actions">
-        <button onclick="removeFirm(&#39;miami dade county finance treasury|miami|fl&#39;)">Remove</button>
-      </td>
+      <td><a href="https://www.miamidadeclerk.gov/clerk/finance-cash-management.page" target="_blank" rel="noopener">Source</a></td>
+      <td>Monthly summary shows a large agency-heavy portfolio; official finance pages identify cash-management leadership.</td>
+      <td class="actions"><button onclick="removeFirm(&#39;miami dade county finance treasury|miami|fl&#39;)">Remove</button></td>
     </tr><tr>
       <td><strong>City of Hallandale Beach Finance</strong><div class="small">FL</div></td>
       <td>Hallandale Beach</td>
@@ -286,15 +261,14 @@
       <td>In-House Buyer</td>
       <td><span class="pill p-eligible">Eligible</span></td>
       <td><span class="pill p-low">Low</span></td>
-      <td>City funds; public funds</td>
-      <td>Needs deeper finance / treasury contact pass</td>
+      <td>$194.2M total cash, cash equivalents, and investments (9/30/2024)</td>
+      <td>Agencies; Treasuries; Asset-Backed Securities; Municipal Bonds; Florida PRIME; FL PALM</td>
+      <td>Geovanne Neste - Finance Director; Barbara Trinka - Assistant Finance Director<div><a href="https://hallandalebeachfl.gov/directory.aspx?did=64" target="_blank" rel="noopener">Contact / team link</a></div></td>
       <td><a href="https://hallandalebeachfl.gov/DocumentCenter/View/18038/COHB--Investment-Policy-FINAL---Comm-Approved-10032018-FINAL" target="_blank" rel="noopener">View policy</a></td>
-      <td>Not stated in surfaced policy</td>
-      <td><a href="https://hallandalebeachfl.gov/26/Finance" target="_blank" rel="noopener">Source</a></td>
-      <td>Finance department page says it has responsibility for investments.</td>
-      <td class="actions">
-        <button onclick="removeFirm(&#39;city of hallandale beach finance|hallandale beach|fl&#39;)">Remove</button>
-      </td>
+      <td>$10MM minimum capital for broker-dealers in surfaced policy</td>
+      <td><a href="https://hallandalebeachfl.gov/530/Financial-Reports" target="_blank" rel="noopener">Source</a></td>
+      <td>ACFR shows direct holdings including agencies, municipals, and asset-backed securities. Surfaced policy capital threshold is only $10MM, so eligible for your firm.</td>
+      <td class="actions"><button onclick="removeFirm(&#39;city of hallandale beach finance|hallandale beach|fl&#39;)">Remove</button></td>
     </tr><tr>
       <td><strong>City of West Miami</strong><div class="small">FL</div></td>
       <td>West Miami</td>
@@ -302,15 +276,14 @@
       <td>In-House Buyer</td>
       <td><span class="pill p-eligible">Eligible</span></td>
       <td><span class="pill p-low">Low</span></td>
+      <td>Not surfaced yet</td>
       <td>City funds; public funds</td>
-      <td>Needs deeper finance / treasury contact pass</td>
+      <td>Cody McCall - Finance Director<div><a href="https://cityofwestmiami.gov/government/staff_directory/index.php" target="_blank" rel="noopener">Contact / team link</a></div></td>
       <td><a href="https://cityofwestmiami.gov/vertical/sites/%7B43D8A331-4B65-45FE-843C-E0F6FE3CD0E8%7D/uploads/RESOLUTION__2024-40_CASH_MANAGEMENT_AND_INVESTMENT_POLICY.pdf" target="_blank" rel="noopener">View policy</a></td>
       <td>Not stated in surfaced policy</td>
       <td><a href="https://cityofwestmiami.gov/vertical/sites/%7B43D8A331-4B65-45FE-843C-E0F6FE3CD0E8%7D/uploads/RESOLUTION__2024-40_CASH_MANAGEMENT_AND_INVESTMENT_POLICY.pdf" target="_blank" rel="noopener">Source</a></td>
-      <td>Policy surfaced; no explicit minimum equity-capital threshold found in surfaced materials.</td>
-      <td class="actions">
-        <button onclick="removeFirm(&#39;city of west miami|west miami|fl&#39;)">Remove</button>
-      </td>
+      <td>Official finance function includes management and investment of public funds; no explicit minimum broker-dealer equity threshold surfaced.</td>
+      <td class="actions"><button onclick="removeFirm(&#39;city of west miami|west miami|fl&#39;)">Remove</button></td>
     </tr><tr>
       <td><strong>City of Sarasota</strong><div class="small">FL</div></td>
       <td>Sarasota</td>
@@ -318,64 +291,61 @@
       <td>Needs Review</td>
       <td><span class="pill p-review">Review</span></td>
       <td><span class="pill p-low">Low</span></td>
+      <td>Not surfaced yet</td>
       <td>City funds; public funds</td>
-      <td>Needs deeper finance / treasury contact pass</td>
+      <td>Kelly Strickland - Director of Financial Administration; John Broschart - Investing of Municipal Funds contact<div><a href="https://www.sarasotafl.gov/government/financial-administration" target="_blank" rel="noopener">Contact / team link</a></div></td>
       <td><a href="https://www.sarasotafl.gov/files/assets/city/v/1/finance/documents/financial-administration/investment-policy-april-2018.pdf" target="_blank" rel="noopener">View policy</a></td>
       <td>Not stated in surfaced city policy</td>
-      <td><a href="https://www.sarasotafl.gov/files/assets/city/v/1/finance/documents/financial-administration/investment-policy-april-2018.pdf" target="_blank" rel="noopener">Source</a></td>
-      <td>City kept separate from Sarasota County; city policy link provided for your own review.</td>
-      <td class="actions">
-        <button onclick="removeFirm(&#39;city of sarasota|sarasota|fl&#39;)">Remove</button>
-      </td>
+      <td><a href="https://www.sarasotafl.gov/government/financial-administration" target="_blank" rel="noopener">Source</a></td>
+      <td>City kept separate from Sarasota County. Surfaced materials reference an investment counselor / investment manager, so this remains review rather than clean in-house coverage.</td>
+      <td class="actions"><button onclick="removeFirm(&#39;city of sarasota|sarasota|fl&#39;)">Remove</button></td>
+    </tr><tr>
+      <td><strong>Seminole County Clerk / County Investment Program</strong><div class="small">FL</div></td>
+      <td>Sanford</td>
+      <td>Government</td>
+      <td>In-House Buyer</td>
+      <td><span class="pill p-eligible">Eligible</span></td>
+      <td><span class="pill p-medium">Medium</span></td>
+      <td>~$1.014B total cash and investments (12/31/2025)</td>
+      <td>Mortgage-Backed Securities; Federal Agency Callables; Federal Agency Coupon Securities; Treasuries</td>
+      <td>Grant Maloy - Clerk of the Circuit Court &amp; Comptroller; Comptroller / Finance team<div><a href="https://www.seminoleclerk.org/about-us/meet-the-clerk/" target="_blank" rel="noopener">Contact / team link</a></div></td>
+      <td><a href="https://www.seminolecountyfl.gov/docs/default-source/pdf/AC3_35-Dec12-23.pdf" target="_blank" rel="noopener">View policy</a></td>
+      <td>Not stated numerically; surfaced policy requires SEC Rule 15c3-1 and Florida registration</td>
+      <td><a href="https://www.seminolecountyfl.gov/departments-services/finance/cash-management/investment-reports.stml" target="_blank" rel="noopener">Source</a></td>
+      <td>Useful addition because official reports show some mortgage-backed and agency callable exposure while remaining eligible under your capital screen.</td>
+      <td class="actions"><button onclick="removeFirm(&#39;seminole county clerk county investment program|sanford|fl&#39;)">Remove</button></td>
+    </tr><tr>
+      <td><strong>Lake County Clerk &amp; Comptroller</strong><div class="small">FL</div></td>
+      <td>Tavares</td>
+      <td>Government</td>
+      <td>In-House Buyer</td>
+      <td><span class="pill p-eligible">Eligible</span></td>
+      <td><span class="pill p-low">Low</span></td>
+      <td>$378.2M total cash and investments (6/30/2025)</td>
+      <td>Bank Deposits; Certificates of Deposit; FLGIT</td>
+      <td>Gary J. Cooney - Clerk &amp; Comptroller; Board Finance Division<div><a href="https://www.lakecountyclerkfl.gov/about-us/clerk-of-the-court/" target="_blank" rel="noopener">Contact / team link</a></div></td>
+      <td><a href="https://www.lakecountyclerkfl.gov/departments/finance/board-finance/investment-reports/" target="_blank" rel="noopener">View policy</a></td>
+      <td>Not stated in surfaced investment materials</td>
+      <td><a href="https://www.lakecountyclerkfl.gov/departments/finance/board-finance/investment-reports/" target="_blank" rel="noopener">Source</a></td>
+      <td>Eligible government account but currently low-structured because surfaced portfolio is mostly deposits, CDs, and FLGIT.</td>
+      <td class="actions"><button onclick="removeFirm(&#39;lake county clerk comptroller|tavares|fl&#39;)">Remove</button></td>
     </tr></tbody>
     </table>
   </div>
-
-  <div class="small" style="margin-top:12px;">
-    Removed firms are stored in your browser. If a firm reappears in a future upload and its normalized identity matches, it will stay hidden until you restore it.
-  </div>
+  <div class="small" style="margin-top:12px;">Removed firms are stored in your browser. If a firm reappears in a future upload and its normalized identity matches, it will stay hidden until you restore it.</div>
 </div>
-
 <script>
-const DATA = [{"firm": "Integrity Fixed Income Management", "city": "Orlando", "state": "FL", "segment": "Asset Manager", "status": "In-House Buyer", "eligibility": "Eligible", "structured": "High", "products": "Agency MBS; Core FI", "contact": "Needs deeper PM/trader pass", "linkedin": "", "policy_url": "", "capital_req": "", "source_url": "https://integrityfi.com/", "notes": "Institutional fixed income manager; site lists government agency MBS strategy."}, {"firm": "Universal Insurance Holdings", "city": "Fort Lauderdale", "state": "FL", "segment": "Insurance", "status": "In-House Buyer", "eligibility": "Eligible", "structured": "High", "products": "Agency MBS; Munis", "contact": "Rob Luther - CIO", "linkedin": "", "policy_url": "", "capital_req": "", "source_url": "https://www.sec.gov/Archives/edgar/data/891166/000089116625000025/uve-20241231.htm", "notes": "10-K discloses agency MBS and muni exposure."}, {"firm": "Heritage Insurance Holdings", "city": "Tampa", "state": "FL", "segment": "Insurance", "status": "In-House Buyer", "eligibility": "Eligible", "structured": "Medium", "products": "Munis; Agencies; MBS", "contact": "Needs deeper treasury/investment pass", "linkedin": "", "policy_url": "", "capital_req": "", "source_url": "https://filecache.investorroom.com/mr5ir_heritage/318/HRTG%20Q424%20Earnings%20Presentation%20March%20v.F.pdf", "notes": "Short-duration fixed-income portfolio; strategic investment activity disclosed."}, {"firm": "Citizens Property Insurance Corporation", "city": "Tallahassee", "state": "FL", "segment": "Insurance / Public", "status": "In-House Buyer", "eligibility": "Eligible", "structured": "Medium", "products": "Bonds; Agencies; Munis", "contact": "Needs deeper treasury/investment pass", "linkedin": "", "policy_url": "", "capital_req": "", "source_url": "https://www.citizensfla.com/documents/20702/31968487/2024%2BAnnual%2BStatement.pdf/98f321e0-ecff-b44c-d5f3-3dbc487ed720?t=1741632246907", "notes": "Large bond book per annual statement."}, {"firm": "FCCI Insurance Group", "city": "Sarasota", "state": "FL", "segment": "Insurance", "status": "In-House Buyer", "eligibility": "Eligible", "structured": "High", "products": "Mortgage / Asset-Backed; CMBS-related exposure", "contact": "Needs deeper investment contact pass", "linkedin": "", "policy_url": "", "capital_req": "", "source_url": "https://static.fcci-group.com/files/documents/2024_Annual_Report_Financials.pdf", "notes": "2024 financials discuss mortgage- and asset-backed securities, including CMBS cash-flow assumptions."}, {"firm": "Tower Hill Insurance Exchange", "city": "Gainesville", "state": "FL", "segment": "Insurance", "status": "Do Not Call", "eligibility": "Ineligible", "structured": "Low", "products": "Short high-quality FI", "contact": "N/A", "linkedin": "", "policy_url": "", "capital_req": "", "source_url": "https://www.thig.com/companies/tower-hill-insurance-exchange/2023-annual-report/", "notes": "Annual report says portfolio is managed by Conning Asset Management."}, {"firm": "Orange County Comptroller", "city": "Orlando", "state": "FL", "segment": "Government", "status": "In-House Buyer", "eligibility": "Eligible", "structured": "Medium", "products": "Agencies; Treasuries; Public funds", "contact": "Phil Diamond - Comptroller", "linkedin": "", "policy_url": "https://www.occompt.com/225/Annual-Investment-Reports", "capital_req": "Not stated in surfaced policy/report materials", "source_url": "https://www.occompt.com/290/Investment-Committee", "notes": "Policy/report link provided; active investment committee and annual investment reporting."}, {"firm": "Palm Beach County Clerk & Comptroller", "city": "West Palm Beach", "state": "FL", "segment": "Government", "status": "In-House Buyer", "eligibility": "Eligible", "structured": "Medium", "products": "County portfolio; agencies; municipals / public funds", "contact": "Joseph Abruzzo - Clerk & Comptroller", "linkedin": "", "policy_url": "https://discover.pbc.gov/ofmb/budget/Reports/investment_policy.pdf", "capital_req": "Not stated in surfaced policy", "source_url": "https://www.mypalmbeachclerk.com/Home/Components/News/News/784/", "notes": "In-house team manages the county investment portfolio."}, {"firm": "St. Lucie County Clerk & Comptroller", "city": "Fort Pierce", "state": "FL", "segment": "Government", "status": "In-House Buyer", "eligibility": "Eligible", "structured": "Medium", "products": "County portfolio; agencies; public funds", "contact": "Michelle R. Miller - Clerk & Comptroller", "linkedin": "", "policy_url": "https://stlucieclerk.gov/deptforms/finance/Investment-Policy.pdf", "capital_req": "Not stated in surfaced policy", "source_url": "https://stlucieclerk.gov/index.php/services/county-financial-reports", "notes": "Clerk states it manages the county investment portfolio and publishes quarterly reports."}, {"firm": "City of Orlando Treasury", "city": "Orlando", "state": "FL", "segment": "Government", "status": "In-House Buyer", "eligibility": "Eligible", "structured": "Medium", "products": "City funds; agencies; public funds", "contact": "Katrina Laudeman - Treasurer", "linkedin": "", "policy_url": "https://www.orlando.gov/Our-Government/Departments-Offices/OBFS/Treasury-Division", "capital_req": "Not stated in surfaced Treasury / policy materials", "source_url": "https://www.orlando.gov/Our-Government/Departments-Offices/OBFS/Treasury-Division", "notes": "Treasury page names the Treasurer and points to the City's investment policy statement."}, {"firm": "Miami-Dade County Finance / Treasury", "city": "Miami", "state": "FL", "segment": "Government", "status": "In-House Buyer", "eligibility": "Eligible", "structured": "Medium", "products": "Agency callables; agency discount; public funds", "contact": "Needs deeper treasury contact pass", "linkedin": "", "policy_url": "https://www.miamidadeclerk.gov/resources-clerk/library/finance/policy.pdf", "capital_req": "Not stated in surfaced policy", "source_url": "https://www.miamidadeclerk.gov/resources-clerk/library/finance/2025-june-summary2.pdf", "notes": "Monthly summary shows large portfolio with agency callables and agency discount positions."}, {"firm": "City of Hallandale Beach Finance", "city": "Hallandale Beach", "state": "FL", "segment": "Government", "status": "In-House Buyer", "eligibility": "Eligible", "structured": "Low", "products": "City funds; public funds", "contact": "Needs deeper finance / treasury contact pass", "linkedin": "", "policy_url": "https://hallandalebeachfl.gov/DocumentCenter/View/18038/COHB--Investment-Policy-FINAL---Comm-Approved-10032018-FINAL", "capital_req": "Not stated in surfaced policy", "source_url": "https://hallandalebeachfl.gov/26/Finance", "notes": "Finance department page says it has responsibility for investments."}, {"firm": "City of West Miami", "city": "West Miami", "state": "FL", "segment": "Government", "status": "In-House Buyer", "eligibility": "Eligible", "structured": "Low", "products": "City funds; public funds", "contact": "Needs deeper finance / treasury contact pass", "linkedin": "", "policy_url": "https://cityofwestmiami.gov/vertical/sites/%7B43D8A331-4B65-45FE-843C-E0F6FE3CD0E8%7D/uploads/RESOLUTION__2024-40_CASH_MANAGEMENT_AND_INVESTMENT_POLICY.pdf", "capital_req": "Not stated in surfaced policy", "source_url": "https://cityofwestmiami.gov/vertical/sites/%7B43D8A331-4B65-45FE-843C-E0F6FE3CD0E8%7D/uploads/RESOLUTION__2024-40_CASH_MANAGEMENT_AND_INVESTMENT_POLICY.pdf", "notes": "Policy surfaced; no explicit minimum equity-capital threshold found in surfaced materials."}, {"firm": "City of Sarasota", "city": "Sarasota", "state": "FL", "segment": "Government", "status": "Needs Review", "eligibility": "Review", "structured": "Low", "products": "City funds; public funds", "contact": "Needs deeper finance / treasury contact pass", "linkedin": "", "policy_url": "https://www.sarasotafl.gov/files/assets/city/v/1/finance/documents/financial-administration/investment-policy-april-2018.pdf", "capital_req": "Not stated in surfaced city policy", "source_url": "https://www.sarasotafl.gov/files/assets/city/v/1/finance/documents/financial-administration/investment-policy-april-2018.pdf", "notes": "City kept separate from Sarasota County; city policy link provided for your own review."}];
+const DATA = [{"firm": "Integrity Fixed Income Management", "city": "Orlando", "state": "FL", "segment": "Asset Manager", "status": "In-House Buyer", "eligibility": "Eligible", "structured": "High", "gov_aum": "", "products": "Agency MBS; Core FI", "contact": "Christopher J. Caputo - Adviser (IAPD); Thomas D. Fant - Adviser (IAPD); Louie E. Denney Jr. - Adviser (IAPD)", "contact_link": "https://adviserinfo.sec.gov/firm/summary/104451", "policy_url": "", "capital_req": "", "source_url": "https://integrityfi.com/", "notes": "Institutional fixed income manager in Orlando; official site lists U.S. Agency MBS as a strategy. Named contacts are current IAPD-registered adviser personnel, not yet PM-title verified."}, {"firm": "Universal Insurance Holdings", "city": "Fort Lauderdale", "state": "FL", "segment": "Insurance", "status": "In-House Buyer", "eligibility": "Eligible", "structured": "High", "gov_aum": "", "products": "Agency MBS; Munis", "contact": "Rob Luther - Chief Investment Officer", "contact_link": "https://www.universalinsuranceholdings.com/management-team/", "policy_url": "", "capital_req": "", "source_url": "https://www.sec.gov/Archives/edgar/data/891166/000119312524118076/d43928dars.pdf", "notes": "Company disclosures support agency MBS and municipal exposure; current best official contact is Rob Luther as CIO."}, {"firm": "Heritage Insurance Holdings", "city": "Tampa", "state": "FL", "segment": "Insurance", "status": "In-House Buyer", "eligibility": "Eligible", "structured": "Medium", "gov_aum": "", "products": "Munis; Agencies; MBS", "contact": "Contact gap - treasury / investments team not surfaced cleanly from official materials", "contact_link": "https://investors.heritagepci.com/", "policy_url": "", "capital_req": "", "source_url": "https://filecache.investorroom.com/mr5ir_heritage/277/HRTG%20Investor%20Presentation%20-%201Q24.pdf", "notes": "Investor materials showed sizable municipal and government / agency exposure; still needs a cleaner day-to-day investment contact."}, {"firm": "Citizens Property Insurance Corporation", "city": "Tallahassee", "state": "FL", "segment": "Insurance / Public", "status": "In-House Buyer", "eligibility": "Eligible", "structured": "Medium", "gov_aum": "", "products": "Bonds; Agencies; Munis", "contact": "Long Yang - Assistant Director, Treasury & Investments; Jonathan Norfleet - Investments, Principal, Controller Administration", "contact_link": "https://www.citizensfla.com/", "policy_url": "", "capital_req": "", "source_url": "https://www.citizensfla.com/documents/20702/31968487/2024%2BAnnual%2BStatement.pdf/98f321e0-ecff-b44c-d5f3-3dbc487ed720?t=1741632246907", "notes": "Large bond book per annual statement; contact names come from official Citizens committee materials and are better day-to-day targets than senior executives."}, {"firm": "FCCI Insurance Group", "city": "Sarasota", "state": "FL", "segment": "Insurance", "status": "In-House Buyer", "eligibility": "Eligible", "structured": "High", "gov_aum": "", "products": "Mortgage / Asset-Backed; CMBS-related exposure", "contact": "Chris Shoucair - EVP, CFO & Treasurer; Michelle Jalbert - SVP, Controller & Assistant Treasurer", "contact_link": "https://www.fcci-group.com/about/leadership/", "policy_url": "", "capital_req": "", "source_url": "https://static.fcci-group.com/files/documents/2024_Annual_Report_Financials.pdf", "notes": "2024 financials discuss mortgage- and asset-backed securities, including CMBS cash-flow assumptions; finance leadership is publicly listed."}, {"firm": "Tower Hill Insurance Exchange", "city": "Gainesville", "state": "FL", "segment": "Insurance", "status": "Do Not Call", "eligibility": "Ineligible", "structured": "Low", "gov_aum": "", "products": "Short high-quality FI", "contact": "N/A", "contact_link": "https://www.thig.com/companies/tower-hill-insurance-exchange/", "policy_url": "", "capital_req": "", "source_url": "https://www.thig.com/assets/uploads/2023-Exchange-Annual-Report.pdf", "notes": "Annual report says the investment portfolio is managed by Conning Asset Management, which screens it out under your in-house rule."}, {"firm": "Orange County Comptroller", "city": "Orlando", "state": "FL", "segment": "Government", "status": "In-House Buyer", "eligibility": "Eligible", "structured": "Medium", "gov_aum": "~$3.53B book value (9/30/2024 portfolio total)", "products": "Treasuries; Florida PRIME; Federal Instrumentalities; Money Market", "contact": "Phil Diamond - Comptroller; Treasury Department", "contact_link": "https://www.occompt.com/274/Treasury", "policy_url": "https://www.occompt.com/225/Annual-Investment-Reports", "capital_req": "Not stated in surfaced policy/report materials", "source_url": "https://www.occompt.com/274/Treasury", "notes": "Official treasury page says the office administers the County investment program; annual investment report totals about $3.53B at book value."}, {"firm": "Palm Beach County Clerk & Comptroller", "city": "West Palm Beach", "state": "FL", "segment": "Government", "status": "In-House Buyer", "eligibility": "Eligible", "structured": "Medium", "gov_aum": "~$4.5B total portfolio (official 2024 IPC minutes); $1.0B Israel Bonds announced Jan. 2026", "products": "County portfolio; public funds; Israel Bonds; short-duration instruments", "contact": "Mike Caruso - Clerk & Comptroller; Felicia Landerman - Treasurer; John Burford - Investment Analyst", "contact_link": "https://www.mypalmbeachclerk.com/departments/finance/county-financial-information/investments", "policy_url": "https://discover.pbc.gov/ofmb/budget/Reports/investment_policy.pdf", "capital_req": "$15MM minimum capital for broker-dealers in surfaced policy", "source_url": "https://www.mypalmbeachclerk.com/departments/finance/county-financial-information/investments", "notes": "Official site says certified investment professionals manage the portfolio. Surfaced policy requires only $15MM minimum capital, which fits your firm."}, {"firm": "St. Lucie County Clerk & Comptroller", "city": "Fort Pierce", "state": "FL", "segment": "Government", "status": "Do Not Call", "eligibility": "Ineligible", "structured": "Low", "gov_aum": "$528.2M cash and investments at county-wide 9/30/2024 level", "products": "County portfolio; public funds", "contact": "Michelle R. Miller - Clerk & Comptroller; Shai Francis - CFO (RFP contact)", "contact_link": "https://stlucieclerk.gov/departments-top-menu/finance", "policy_url": "https://stlucieclerk.gov/deptforms/finance/Investment-Policy.pdf", "capital_req": "Not stated in surfaced policy", "source_url": "https://stlucieclerk.gov/departments-top-menu/finance", "notes": "Clerk site says it manages the portfolio, but later investment-advisor RFP / outsourced-management indicators screen it out for direct in-house coverage."}, {"firm": "City of Orlando Treasury", "city": "Orlando", "state": "FL", "segment": "Government", "status": "In-House Buyer", "eligibility": "Eligible", "structured": "Medium", "gov_aum": "~$1.47B operating portfolio (9/30/2024); $3.77B total cash and investments incl. pension/custodial", "products": "City operating portfolio; agencies; public funds", "contact": "Katrina Laudeman - Treasurer", "contact_link": "https://www.orlando.gov/Our-Government/Departments-Offices/OBFS/Treasury-Division", "policy_url": "https://www.orlando.gov/Our-Government/Departments-Offices/OBFS/Treasury-Division", "capital_req": "Not stated in surfaced Treasury / policy materials", "source_url": "https://www.orlando.gov/files/sharedassets/public/v/2/documents/obfs/annual-report/city-of-orlando-2024-acfr.pdf", "notes": "Treasury Division page names the Treasurer; ACFR discloses operating portfolio and total cash/investments."}, {"firm": "Miami-Dade County Finance / Treasury", "city": "Miami", "state": "FL", "segment": "Government", "status": "In-House Buyer", "eligibility": "Eligible", "structured": "Medium", "gov_aum": "~$9.6B invested portfolio at 6/30/2025 excluding $416M cash deposits", "products": "Agency callables; Agency discount; Agency bullets; CP; Treasuries", "contact": "Chris Hill - Cash Management Division Director; Barbara Gomez - Finance Director, Finance Operations", "contact_link": "https://www.miamidade.gov/global/finance/contact-us.page?componentID=1553655066001&submit=true", "policy_url": "https://www.miamidadeclerk.gov/resources-clerk/library/finance/policy.pdf", "capital_req": "Not stated in surfaced policy", "source_url": "https://www.miamidadeclerk.gov/clerk/finance-cash-management.page", "notes": "Monthly summary shows a large agency-heavy portfolio; official finance pages identify cash-management leadership."}, {"firm": "City of Hallandale Beach Finance", "city": "Hallandale Beach", "state": "FL", "segment": "Government", "status": "In-House Buyer", "eligibility": "Eligible", "structured": "Low", "gov_aum": "$194.2M total cash, cash equivalents, and investments (9/30/2024)", "products": "Agencies; Treasuries; Asset-Backed Securities; Municipal Bonds; Florida PRIME; FL PALM", "contact": "Geovanne Neste - Finance Director; Barbara Trinka - Assistant Finance Director", "contact_link": "https://hallandalebeachfl.gov/directory.aspx?did=64", "policy_url": "https://hallandalebeachfl.gov/DocumentCenter/View/18038/COHB--Investment-Policy-FINAL---Comm-Approved-10032018-FINAL", "capital_req": "$10MM minimum capital for broker-dealers in surfaced policy", "source_url": "https://hallandalebeachfl.gov/530/Financial-Reports", "notes": "ACFR shows direct holdings including agencies, municipals, and asset-backed securities. Surfaced policy capital threshold is only $10MM, so eligible for your firm."}, {"firm": "City of West Miami", "city": "West Miami", "state": "FL", "segment": "Government", "status": "In-House Buyer", "eligibility": "Eligible", "structured": "Low", "gov_aum": "Not surfaced yet", "products": "City funds; public funds", "contact": "Cody McCall - Finance Director", "contact_link": "https://cityofwestmiami.gov/government/staff_directory/index.php", "policy_url": "https://cityofwestmiami.gov/vertical/sites/%7B43D8A331-4B65-45FE-843C-E0F6FE3CD0E8%7D/uploads/RESOLUTION__2024-40_CASH_MANAGEMENT_AND_INVESTMENT_POLICY.pdf", "capital_req": "Not stated in surfaced policy", "source_url": "https://cityofwestmiami.gov/vertical/sites/%7B43D8A331-4B65-45FE-843C-E0F6FE3CD0E8%7D/uploads/RESOLUTION__2024-40_CASH_MANAGEMENT_AND_INVESTMENT_POLICY.pdf", "notes": "Official finance function includes management and investment of public funds; no explicit minimum broker-dealer equity threshold surfaced."}, {"firm": "City of Sarasota", "city": "Sarasota", "state": "FL", "segment": "Government", "status": "Needs Review", "eligibility": "Review", "structured": "Low", "gov_aum": "Not surfaced yet", "products": "City funds; public funds", "contact": "Kelly Strickland - Director of Financial Administration; John Broschart - Investing of Municipal Funds contact", "contact_link": "https://www.sarasotafl.gov/government/financial-administration", "policy_url": "https://www.sarasotafl.gov/files/assets/city/v/1/finance/documents/financial-administration/investment-policy-april-2018.pdf", "capital_req": "Not stated in surfaced city policy", "source_url": "https://www.sarasotafl.gov/government/financial-administration", "notes": "City kept separate from Sarasota County. Surfaced materials reference an investment counselor / investment manager, so this remains review rather than clean in-house coverage."}, {"firm": "Seminole County Clerk / County Investment Program", "city": "Sanford", "state": "FL", "segment": "Government", "status": "In-House Buyer", "eligibility": "Eligible", "structured": "Medium", "gov_aum": "~$1.014B total cash and investments (12/31/2025)", "products": "Mortgage-Backed Securities; Federal Agency Callables; Federal Agency Coupon Securities; Treasuries", "contact": "Grant Maloy - Clerk of the Circuit Court & Comptroller; Comptroller / Finance team", "contact_link": "https://www.seminoleclerk.org/about-us/meet-the-clerk/", "policy_url": "https://www.seminolecountyfl.gov/docs/default-source/pdf/AC3_35-Dec12-23.pdf", "capital_req": "Not stated numerically; surfaced policy requires SEC Rule 15c3-1 and Florida registration", "source_url": "https://www.seminolecountyfl.gov/departments-services/finance/cash-management/investment-reports.stml", "notes": "Useful addition because official reports show some mortgage-backed and agency callable exposure while remaining eligible under your capital screen."}, {"firm": "Lake County Clerk & Comptroller", "city": "Tavares", "state": "FL", "segment": "Government", "status": "In-House Buyer", "eligibility": "Eligible", "structured": "Low", "gov_aum": "$378.2M total cash and investments (6/30/2025)", "products": "Bank Deposits; Certificates of Deposit; FLGIT", "contact": "Gary J. Cooney - Clerk & Comptroller; Board Finance Division", "contact_link": "https://www.lakecountyclerkfl.gov/about-us/clerk-of-the-court/", "policy_url": "https://www.lakecountyclerkfl.gov/departments/finance/board-finance/investment-reports/", "capital_req": "Not stated in surfaced investment materials", "source_url": "https://www.lakecountyclerkfl.gov/departments/finance/board-finance/investment-reports/", "notes": "Eligible government account but currently low-structured because surfaced portfolio is mostly deposits, CDs, and FLGIT."}];
 let showRemoved = false;
-
-function norm(s) {
-  return (s || '').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
-}
-function rowId(r) {
-  return [norm(r.firm), norm(r.city), norm(r.state)].join('|');
-}
-function getRemoved() {
-  try { return JSON.parse(localStorage.getItem('fi_removed_v4') || '[]'); } catch (e) { return []; }
-}
-function saveRemoved(arr) {
-  localStorage.setItem('fi_removed_v4', JSON.stringify(arr));
-}
-function removeFirm(id) {
-  if (!confirm('Remove this firm?')) return;
-  const s = new Set(getRemoved());
-  s.add(id);
-  saveRemoved(Array.from(s));
-  render();
-}
-function restoreFirm(id) {
-  const arr = getRemoved().filter(x => x !== id);
-  saveRemoved(arr);
-  render();
-}
-function toggleRemoved() {
-  showRemoved = !showRemoved;
-  document.getElementById('removedLabel').textContent = 'Show Removed: ' + (showRemoved ? 'On' : 'Off');
-  render();
-}
-function pill(text, cls) {
-  return '<span class="pill ' + cls + '">' + text + '</span>';
-}
-function esc(x) {
-  return (x || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
+function norm(s) { return (s || '').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim(); }
+function rowId(r) { return [norm(r.firm), norm(r.city), norm(r.state)].join('|'); }
+function getRemoved() { try { return JSON.parse(localStorage.getItem('fi_removed_v6') || '[]'); } catch (e) { return []; } }
+function saveRemoved(arr) { localStorage.setItem('fi_removed_v6', JSON.stringify(arr)); }
+function removeFirm(id) { if (!confirm('Remove this firm?')) return; const s = new Set(getRemoved()); s.add(id); saveRemoved(Array.from(s)); render(); }
+function restoreFirm(id) { const arr = getRemoved().filter(x => x !== id); saveRemoved(arr); render(); }
+function toggleRemoved() { showRemoved = !showRemoved; document.getElementById('removedLabel').textContent = 'Show Removed: ' + (showRemoved ? 'On' : 'Off'); render(); }
+function pill(text, cls) { return '<span class="pill ' + cls + '">' + text + '</span>'; }
+function esc(x) { return (x || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function render() {
   const q = document.getElementById('q').value.toLowerCase();
   const fSeg = document.getElementById('segment').value;
@@ -383,7 +353,6 @@ function render() {
   const fStructured = document.getElementById('structured').value;
   const fEligibility = document.getElementById('eligibility').value;
   const removed = new Set(getRemoved());
-
   const visible = DATA.filter(r => {
     const id = rowId(r);
     if (!showRemoved && removed.has(id)) return false;
@@ -392,28 +361,25 @@ function render() {
     if (fStructured && r.structured !== fStructured) return false;
     if (fEligibility && r.eligibility !== fEligibility) return false;
     if (q) {
-      const blob = [r.firm,r.city,r.segment,r.status,r.products,r.contact,r.notes].join(' ').toLowerCase();
+      const blob = [r.firm,r.city,r.segment,r.status,r.products,r.contact,r.notes,r.gov_aum].join(' ').toLowerCase();
       if (!blob.includes(q)) return false;
     }
     return true;
   });
-
   document.getElementById('countVisible').textContent = visible.length;
-  document.getElementById('countGov').textContent = visible.filter(r => r.segment === 'Government' && r.policy_url).length;
+  document.getElementById('countGov').textContent = visible.filter(r => r.segment === 'Government').length;
+  document.getElementById('countGovAum').textContent = visible.filter(r => r.segment === 'Government' && r.gov_aum && r.gov_aum !== 'Not surfaced yet').length;
   document.getElementById('countHigh').textContent = visible.filter(r => r.structured === 'High').length;
   document.getElementById('countEligible').textContent = visible.filter(r => r.eligibility === 'Eligible').length;
   document.getElementById('countRemoved').textContent = removed.size;
-
   const tb = document.getElementById('tbody');
   tb.innerHTML = '';
   visible.forEach(r => {
     const id = rowId(r);
     const tr = document.createElement('tr');
-
-    let statusHtml = r.status === 'Do Not Call' ? pill(r.status, 'p-dnc') : esc(r.status);
-    let eligClass = r.eligibility === 'Eligible' ? 'p-eligible' : (r.eligibility === 'Review' ? 'p-review' : 'p-ineligible');
-    let structuredClass = r.structured === 'High' ? 'p-high' : (r.structured === 'Medium' ? 'p-medium' : 'p-low');
-
+    const statusHtml = r.status === 'Do Not Call' ? pill(r.status, 'p-dnc') : esc(r.status);
+    const eligClass = r.eligibility === 'Eligible' ? 'p-eligible' : (r.eligibility === 'Review' ? 'p-review' : 'p-ineligible');
+    const structuredClass = r.structured === 'High' ? 'p-high' : (r.structured === 'Medium' ? 'p-medium' : 'p-low');
     tr.innerHTML = `
       <td><strong>${esc(r.firm)}</strong><div class="small">${esc(r.state)}</div></td>
       <td>${esc(r.city)}</td>
@@ -421,17 +387,14 @@ function render() {
       <td>${statusHtml}</td>
       <td>${pill(esc(r.eligibility), eligClass)}</td>
       <td>${pill(esc(r.structured), structuredClass)}</td>
+      <td>${esc(r.gov_aum)}</td>
       <td>${esc(r.products)}</td>
-      <td>${esc(r.contact)}${r.linkedin ? '<div><a href="' + r.linkedin + '" target="_blank" rel="noopener">LinkedIn</a></div>' : ''}</td>
+      <td>${esc(r.contact)}${r.contact_link ? '<div><a href="' + r.contact_link + '" target="_blank" rel="noopener">Contact / team link</a></div>' : ''}</td>
       <td>${r.policy_url ? '<a href="' + r.policy_url + '" target="_blank" rel="noopener">View policy</a>' : ''}</td>
       <td>${esc(r.capital_req)}</td>
       <td>${r.source_url ? '<a href="' + r.source_url + '" target="_blank" rel="noopener">Source</a>' : ''}</td>
       <td>${esc(r.notes)}</td>
-      <td class="actions">
-        ${ removed.has(id)
-            ? '<button onclick="restoreFirm(\'' + id + '\')">Restore</button>'
-            : '<button onclick="removeFirm(\'' + id + '\')">Remove</button>' }
-      </td>
+      <td class="actions">${ removed.has(id) ? '<button onclick="restoreFirm(\'' + id + '\')">Restore</button>' : '<button onclick="removeFirm(\'' + id + '\')">Remove</button>' }</td>
     `;
     tb.appendChild(tr);
   });
