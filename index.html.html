@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Florida Structured Prospect Pipeline v8</title>
+<title>Florida Structured Prospect Pipeline v9</title>
 <style>
   :root {
     --bg:#f7f8fb; --card:#ffffff; --text:#1f2937; --muted:#6b7280; --line:#d1d5db;
@@ -15,7 +15,7 @@
   .wrap { max-width: 1600px; margin: 0 auto; padding: 20px; }
   h1 { margin: 0 0 8px; font-size: 28px; }
   .sub { color: var(--muted); margin-bottom: 16px; line-height: 1.45; }
-  .toolbar { display:grid; grid-template-columns: 1.8fr repeat(5, 1fr); gap:10px; margin-bottom:16px; }
+  .toolbar { display:grid; grid-template-columns: 1.8fr repeat(4, 1fr) 1.15fr 1.15fr; gap:10px; margin-bottom:16px; }
   input, select, button { border:1px solid var(--line); border-radius:10px; padding:10px 12px; font-size:14px; background:#fff; }
   button { cursor:pointer; }
   .stats { display:grid; grid-template-columns: repeat(6, 1fr); gap:10px; margin-bottom:16px; }
@@ -38,14 +38,16 @@
   a { color:var(--blue); text-decoration:none; }
   a:hover { text-decoration:underline; }
   .actions { display:flex; gap:8px; align-items:center; }
-  .xscroll { overflow-x:auto; overflow-y:hidden; background:var(--card); border:1px solid var(--line); border-radius:10px; margin:8px 0 10px; }
+  .top-scroll-shell { position:sticky; top:0; z-index:40; background:var(--bg); padding:8px 0 10px; }
+  .top-scroll-shell .small { margin:0 0 4px; }
+  .xscroll { overflow-x:auto; overflow-y:hidden; background:var(--card); border:1px solid var(--line); border-radius:10px; margin:0; }
   .xscroll-inner { height:16px; }
   .tablebox { scrollbar-gutter: stable both-edges; }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>Florida Structured Prospect Pipeline v8</h1>
+  <h1>Florida Structured Prospect Pipeline v9</h1>
   <div class="sub">
     Fixed the bad contact-link problem: this version only shows a <strong>Contact / team link</strong> when I could support a working official team/department page or other verified public page.
     If I could not verify a working team, LinkedIn, or company page cleanly, I left the field blank rather than guess.
@@ -79,7 +81,13 @@
       <option>Review</option>
       <option>Ineligible</option>
     </select>
-    <button onclick="toggleRemoved()"><span id="removedLabel">Show Removed: Off</span></button>
+    <button onclick="toggleRemoved()"><span id="removedLabel">View Removed Only: Off</span></button>
+    <button id="restoreVisibleBtn" onclick="restoreVisible()" style="display:none;" disabled>Restore Visible</button>
+  </div>
+
+  <div class="top-scroll-shell">
+    <div class="small">Use the horizontal scrollbar below to move left and right across the full table.</div>
+    <div class="xscroll" id="xscrollTop"><div class="xscroll-inner" id="xscrollInner"></div></div>
   </div>
 
   <div class="stats">
@@ -90,9 +98,6 @@
     <div class="stat"><div class="label">Eligible</div><div class="value" id="countEligible">0</div></div>
     <div class="stat"><div class="label">Removed</div><div class="value" id="countRemoved">0</div></div>
   </div>
-
-  <div class="small" style="margin:6px 0 4px;">Use the horizontal scrollbar below to move left and right across the full table.</div>
-  <div class="xscroll" id="xscrollTop"><div class="xscroll-inner" id="xscrollInner"></div></div>
 
   <div class="tablebox" id="tablebox">
     <table>
@@ -197,8 +202,23 @@ function restoreFirm(id) {
 }
 function toggleRemoved() {
   showRemoved = !showRemoved;
-  document.getElementById('removedLabel').textContent = 'Show Removed: ' + (showRemoved ? 'On' : 'Off');
+  document.getElementById('removedLabel').textContent = 'View Removed Only: ' + (showRemoved ? 'On' : 'Off');
   render();
+}
+function restoreVisible() {
+  if (!showRemoved) return;
+  const removed = new Set(getRemoved());
+  const toRestore = getVisibleRows(removed).map(function(r) { return rowId(r); });
+  if (!toRestore.length) return;
+  const next = getRemoved().filter(function(id) { return !toRestore.includes(id); });
+  saveRemoved(next);
+  render();
+}
+function setRestoreButtonState(visibleCount) {
+  const btn = document.getElementById('restoreVisibleBtn');
+  if (!btn) return;
+  btn.style.display = showRemoved ? '' : 'none';
+  btn.disabled = !showRemoved || visibleCount === 0;
 }
 function pill(text, cls) {
   return '<span class="pill ' + cls + '">' + text + '</span>';
@@ -207,16 +227,16 @@ function esc(x) {
   return (x || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-function render() {
+function getVisibleRows(removed) {
   const q = document.getElementById('q').value.toLowerCase();
   const fSeg = document.getElementById('segment').value;
   const fStatus = document.getElementById('status').value;
   const fStructured = document.getElementById('structured').value;
   const fEligibility = document.getElementById('eligibility').value;
-  const removed = new Set(getRemoved());
 
-  const visible = DATA.filter(r => {
+  return DATA.filter(r => {
     const id = rowId(r);
+    if (showRemoved && !removed.has(id)) return false;
     if (!showRemoved && removed.has(id)) return false;
     if (fSeg && r.segment !== fSeg) return false;
     if (fStatus && r.status !== fStatus) return false;
@@ -228,6 +248,11 @@ function render() {
     }
     return true;
   });
+}
+
+function render() {
+  const removed = new Set(getRemoved());
+  const visible = getVisibleRows(removed);
 
   document.getElementById('countVisible').textContent = visible.length;
   document.getElementById('countGov').textContent = visible.filter(r => r.segment === 'Government').length;
@@ -235,6 +260,7 @@ function render() {
   document.getElementById('countHigh').textContent = visible.filter(r => r.structured === 'High').length;
   document.getElementById('countEligible').textContent = visible.filter(r => r.eligibility === 'Eligible').length;
   document.getElementById('countRemoved').textContent = removed.size;
+  setRestoreButtonState(visible.length);
 
   const tb = document.getElementById('tbody');
   tb.innerHTML = '';
