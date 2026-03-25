@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Florida Structured Prospect Pipeline v10</title>
+<title>Florida Structured Prospect Pipeline v11 CRM-lite</title>
 <style>
   :root {
     --bg:#f7f8fb; --card:#ffffff; --text:#1f2937; --muted:#6b7280; --line:#d1d5db;
@@ -43,11 +43,23 @@
   .xscroll { overflow-x:auto; overflow-y:hidden; background:var(--card); border:1px solid var(--line); border-radius:10px; margin:0; }
   .xscroll-inner { height:16px; }
   .tablebox { scrollbar-gutter: stable both-edges; }
+
+  .drawer-backdrop { position: fixed; inset: 0; background: rgba(17,24,39,.45); display:none; z-index: 40; }
+  .drawer { position: fixed; top: 0; right: 0; width: min(520px, 92vw); height: 100vh; background: #fff; box-shadow: -8px 0 24px rgba(0,0,0,.14); transform: translateX(100%); transition: transform .2s ease; z-index: 50; display:flex; flex-direction:column; }
+  .drawer.open { transform: translateX(0); }
+  .drawer-head { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; padding:16px 18px; border-bottom:1px solid #e5e7eb; }
+  .drawer-body { padding:16px 18px; overflow:auto; display:grid; gap:12px; }
+  .drawer h2 { margin:0; font-size:22px; }
+  .field label { display:block; font-size:12px; color:#6b7280; margin-bottom:6px; font-weight:700; }
+  .field textarea, .field input { width:100%; box-sizing:border-box; border:1px solid #d1d5db; border-radius:10px; padding:10px 12px; font-size:14px; background:#fff; }
+  .field textarea { min-height:120px; resize:vertical; }
+  .mini-actions { display:flex; gap:8px; flex-wrap:wrap; }
+
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>Florida Structured Prospect Pipeline v10</h1>
+  <h1>Florida Structured Prospect Pipeline v11 CRM-lite</h1>
   <div class="sub">
     Fixed the bad contact-link problem: this version only shows a <strong>Contact / team link</strong> when I could support a working official team/department page or other verified public page.
     If I could not verify a working team, LinkedIn, or company page cleanly, I left the field blank rather than guess.
@@ -82,6 +94,7 @@
       <option>Ineligible</option>
     </select>
     <button onclick="toggleRemoved()"><span id="removedLabel">View Removed Only: Off</span></button>
+    <button id="restoreVisibleBtn" onclick="restoreVisible()" style="display:none;">Restore Visible</button>
     <button id="restoreVisibleBtn" onclick="restoreVisible()" style="display:none;" disabled>Restore Visible</button>
   </div>
 
@@ -97,6 +110,7 @@
     <div class="stat"><div class="label">Structured High</div><div class="value" id="countHigh">0</div></div>
     <div class="stat"><div class="label">Eligible</div><div class="value" id="countEligible">0</div></div>
     <div class="stat"><div class="label">Removed</div><div class="value" id="countRemoved">0</div></div>
+    <div class="stat"><div class="label">Saved CRM</div><div class="value" id="countCrm">0</div></div>
   </div>
 
   <div class="tablebox" id="tablebox">
@@ -117,6 +131,7 @@
           <th>Capital Requirement</th>
           <th>Source</th>
           <th>Notes</th>
+          <th>CRM</th>
           <th>Action</th>
         </tr>
       </thead>
@@ -277,6 +292,81 @@ function getVisibleRows(removed) {
   });
 }
 
+
+let activeCrmId = null;
+
+function getCrmStore() {
+  try { return JSON.parse(localStorage.getItem('fi_crm_notes') || '{}'); } catch (e) { return {}; }
+}
+function saveCrmStore(obj) {
+  localStorage.setItem('fi_crm_notes', JSON.stringify(obj));
+}
+function openCrm(id, firm, city, segment) {
+  activeCrmId = id;
+  const store = getCrmStore();
+  const item = store[id] || {};
+  document.getElementById('drawerTitle').textContent = firm;
+  document.getElementById('drawerSub').textContent = city + ' · ' + segment;
+  document.getElementById('crmContact').value = item.contact || '';
+  document.getElementById('crmContactInfo').value = item.contactInfo || '';
+  document.getElementById('crmNotes').value = item.notes || '';
+  document.getElementById('crmSavedMsg').textContent = '';
+  document.getElementById('drawerBackdrop').style.display = 'block';
+  document.getElementById('crmDrawer').classList.add('open');
+  document.getElementById('crmDrawer').setAttribute('aria-hidden', 'false');
+}
+function closeDrawer() {
+  document.getElementById('drawerBackdrop').style.display = 'none';
+  document.getElementById('crmDrawer').classList.remove('open');
+  document.getElementById('crmDrawer').setAttribute('aria-hidden', 'true');
+}
+function saveCrm() {
+  if (!activeCrmId) return;
+  const store = getCrmStore();
+  store[activeCrmId] = {
+    contact: document.getElementById('crmContact').value.trim(),
+    contactInfo: document.getElementById('crmContactInfo').value.trim(),
+    notes: document.getElementById('crmNotes').value.trim()
+  };
+  saveCrmStore(store);
+  document.getElementById('crmSavedMsg').textContent = 'Saved';
+  render();
+}
+function clearCrm() {
+  if (!activeCrmId) return;
+  const store = getCrmStore();
+  delete store[activeCrmId];
+  saveCrmStore(store);
+  document.getElementById('crmContact').value = '';
+  document.getElementById('crmContactInfo').value = '';
+  document.getElementById('crmNotes').value = '';
+  document.getElementById('crmSavedMsg').textContent = 'Cleared';
+  render();
+}
+function restoreVisible() {
+  const removed = new Set(getRemoved());
+  const q = document.getElementById('q').value.toLowerCase();
+  const fSeg = document.getElementById('segment').value;
+  const fStatus = document.getElementById('status').value;
+  const fStructured = document.getElementById('structured').value;
+  const fEligibility = document.getElementById('eligibility').value;
+  DATA.forEach(r => {
+    const id = rowId(r);
+    if (!removed.has(id)) return;
+    if (fSeg && r.segment !== fSeg) return;
+    if (fStatus && r.status !== fStatus) return;
+    if (fStructured && r.structured !== fStructured) return;
+    if (fEligibility && r.eligibility !== fEligibility) return;
+    if (q) {
+      const blob = [r.firm,r.city,r.segment,r.status,r.products,r.contact,r.notes,r.gov_aum].join(' ').toLowerCase();
+      if (!blob.includes(q)) return;
+    }
+    removed.delete(id);
+  });
+  saveRemoved(Array.from(removed));
+  render();
+}
+
 function render() {
   const removed = new Set(getRemoved());
   const visible = getVisibleRows(removed);
@@ -287,6 +377,8 @@ function render() {
   document.getElementById('countHigh').textContent = visible.filter(r => r.structured === 'High').length;
   document.getElementById('countEligible').textContent = visible.filter(r => r.eligibility === 'Eligible').length;
   document.getElementById('countRemoved').textContent = removed.size;
+  document.getElementById('countCrm').textContent = Object.keys(getCrmStore()).length;
+  document.getElementById('restoreVisibleBtn').style.display = showRemoved ? 'inline-block' : 'none';
   setRestoreButtonState(visible.length);
 
   const tb = document.getElementById('tbody');
@@ -314,6 +406,15 @@ function render() {
       <td>${esc(r.capital_req)}</td>
       <td>${r.source_url ? '<a href="' + r.source_url + '" target="_blank" rel="noopener">Source</a>' : ''}</td>
       <td>${esc(r.notes)}</td>
+      <td>${(() => { const c = getCrmStore()[id] || {}; const has = (c.contact || c.contactInfo || c.notes); let s = '<button onclick="openCrm(\'' + id + '\', \''
+        + esc(r.firm).replace(/'/g, '&#39;') + '\', \''
+        + esc(r.city).replace(/'/g, '&#39;') + '\', \''
+        + esc(r.segment).replace(/'/g, '&#39;') + '\')">' + (has ? 'Edit CRM' : 'Add CRM') + '</button>'; 
+        if (has) { 
+          const preview = [c.contact || '', c.contactInfo || '', c.notes || ''].filter(Boolean).join(' · ').slice(0,110);
+          s += '<div class="small" style="margin-top:6px; max-width:220px;">' + esc(preview) + '</div>'; 
+        } 
+        return s; })()}</td>
       <td class="actions">
         ${ removed.has(id)
             ? '<button onclick="restoreFirm(\'' + id + '\')">Restore</button>'
